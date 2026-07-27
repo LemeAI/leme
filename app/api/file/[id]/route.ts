@@ -17,6 +17,65 @@ function expiredHtml(): string {
 </body></html>`;
 }
 
+// O iframe em HtmlViewer usa sandbox="allow-scripts ..." sem
+// "allow-same-origin" de propósito (ver notas de segurança no SETUP.md) —
+// isso isola o HTML de terceiros num Origin opaco, impedindo acesso a
+// cookies/localStorage do nosso domínio. Efeito colateral: o navegador
+// desabilita localStorage/sessionStorage *inteiramente* nesse contexto, e
+// qualquer script que tente usar (comum em tabs/accordions gerados por IA
+// pra lembrar o estado) lança uma exceção não tratada, travando o resto do
+// handler antes de chegar no código que de fato muda a UI. Este shim
+// substitui as duas APIs por uma versão em memória (não persiste entre
+// reloads, mas não lança) só quando a versão nativa estiver bloqueada.
+const STORAGE_SHIM_SCRIPT = `<script>
+(function () {
+  function createMemoryStorage() {
+    var store = new Map();
+    return {
+      getItem: function (k) { return store.has(k) ? store.get(k) : null; },
+      setItem: function (k, v) { store.set(String(k), String(v)); },
+      removeItem: function (k) { store.delete(k); },
+      clear: function () { store.clear(); },
+      key: function (i) { return Array.from(store.keys())[i] ?? null; },
+      get length() { return store.size; },
+    };
+  }
+  function isBlocked(name) {
+    try {
+      var s = window[name];
+      var testKey = "__leme_storage_test__";
+      s.setItem(testKey, "1");
+      s.removeItem(testKey);
+      return false;
+    } catch (e) {
+      return true;
+    }
+  }
+  ["localStorage", "sessionStorage"].forEach(function (name) {
+    if (isBlocked(name)) {
+      try {
+        Object.defineProperty(window, name, {
+          value: createMemoryStorage(),
+          configurable: true,
+        });
+      } catch (e) {}
+    }
+  });
+})();
+</script>`;
+
+// Injeta o shim de storage logo no início do <head> (ou do documento, se
+// não houver <head>), antes de qualquer script do próprio arquivo rodar.
+function injectStorageShim(html: string): string {
+  if (/<head[^>]*>/i.test(html)) {
+    return html.replace(/<head[^>]*>/i, (match) => `${match}\n${STORAGE_SHIM_SCRIPT}`);
+  }
+  if (/<html[^>]*>/i.test(html)) {
+    return html.replace(/<html[^>]*>/i, (match) => `${match}\n${STORAGE_SHIM_SCRIPT}`);
+  }
+  return `${STORAGE_SHIM_SCRIPT}\n${html}`;
+}
+
 // Injeta um selo discreto "made with Leme" antes de </body> (ou no final
 // do arquivo, se não houver esse fechamento). Só é aplicado a páginas de
 // planos com marca d'água habilitada (ver lib/plans.ts).
@@ -46,8 +105,9 @@ function injectWatermark(html: string): string {
 // GET /api/file/[id]
 // Serve o conteúdo HTML de uma html_page com Content-Type "text/html"
 // garantido (evita depender do MIME type devolvido pelo Supabase Storage).
-// Também aplica as regras do plano do dono: bloqueia páginas expiradas e
-// injeta a marca d'água quando o plano não é "pro".
+// Também aplica as regras do plano do dono: bloqueia páginas expiradas,
+// injeta o shim de storage (necessário por causa do sandbox do iframe) e
+// a marca d'água quando o plano não é "pro".
 export async function GET(
   _request: Request,
   { params }: { params: { id: string } }
@@ -91,6 +151,7 @@ export async function GET(
   }
 
   let html = await file.text();
+  html = injectStorageShim(html);
   if (getPlanLimits(plan).watermark) {
     html = injectWatermark(html);
   }
