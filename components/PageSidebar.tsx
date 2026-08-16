@@ -21,12 +21,15 @@ export default function PageSidebar({ currentPageId }: { currentPageId: string }
 
   const availablePages = pages.filter((page) => !isExpired(page.expires_at));
   const effectivePlan: EffectivePlan = user ? profileData?.profile.plan ?? "free" : "anonymous";
+  const ownsPage = pages.some((page) => page.id === currentPageId);
 
   return (
     <>
-      <div className="border-b border-ink-100 p-4">
-        <ShareButton pageId={currentPageId} />
-      </div>
+      {ownsPage && (
+        <div className="border-b border-ink-100 p-4">
+          <ShareButton pageId={currentPageId} />
+        </div>
+      )}
 
       <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
         <UploadsMenu pages={availablePages} currentPageId={currentPageId} />

@@ -34,8 +34,9 @@ async function getPageSource(pageId: string): Promise<string> {
   }
 }
 
-export default async function SharedPage({ params }: { params: { token: string } }) {
-  const result = await getPageByToken(params.token);
+export default async function SharedPage({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params;
+  const result = await getPageByToken(token);
 
   if (result.status === "expired") {
     return <ExpiredNotice />;
@@ -55,7 +56,7 @@ export default async function SharedPage({ params }: { params: { token: string }
     <PageViewerLayout
       page={page}
       sourceNote="via shared link"
-      shareUrl={`${getSiteUrl()}/s/${params.token}`}
+      shareUrl={`${getSiteUrl()}/s/${token}`}
       sidebar={
         <ContributionsPanel
           pageId={page.id}

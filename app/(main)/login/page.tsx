@@ -9,6 +9,8 @@ import {
 } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { EMAIL_LINK_STORAGE_KEY } from "@/lib/auth";
+import { describeAuthError } from "@/lib/auth-errors";
+import GoogleSignInButton from "@/components/GoogleSignInButton";
 
 type Mode = "magic-link" | "password";
 type PasswordAction = "sign-in" | "sign-up";
@@ -38,7 +40,7 @@ export default function LoginPage() {
       window.localStorage.setItem(EMAIL_LINK_STORAGE_KEY, email);
       setMessage("Magic link sent! Check your inbox to continue.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't send the magic link.");
+      setError(describeAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -58,7 +60,7 @@ export default function LoginPage() {
       }
       router.push("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't connect. Try again.");
+      setError(describeAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -71,6 +73,14 @@ export default function LoginPage() {
         <p className="mt-1 text-sm text-ink-500">
           Access your account to manage your uploads and share links.
         </p>
+      </div>
+
+      <GoogleSignInButton onError={setError} disabled={loading} />
+
+      <div className="flex items-center gap-3">
+        <span className="h-px flex-1 bg-ink-200" />
+        <span className="text-xs font-medium uppercase tracking-wide text-ink-400">or</span>
+        <span className="h-px flex-1 bg-ink-200" />
       </div>
 
       <div className="flex rounded-full border border-ink-200 bg-ink-50 p-1 text-sm">

@@ -10,39 +10,47 @@ interface UseProfileResult {
   loading: boolean;
 }
 
-/** Fetches the authenticated user's plan and usage via GET /me. */
+interface FetchState {
+  /** Identity the profile belongs to; null before anything has loaded. */
+  key: string | null;
+  data: MeResponse | null;
+}
+
+/**
+ * Fetches the authenticated user's plan and usage via GET /me.
+ *
+ * Like `useMyPages`, `loading` is derived rather than assigned inside the
+ * effect, which avoids a synchronous setState and the cascading render it
+ * causes.
+ */
 export function useProfile(): UseProfileResult {
   const { user, loading: authLoading } = useAuth();
-  const [data, setData] = useState<MeResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [state, setState] = useState<FetchState>({ key: null, data: null });
+
+  const key = authLoading ? null : user ? `user:${user.uid}` : "anon";
 
   useEffect(() => {
-    if (authLoading) return;
-
-    if (!user) {
-      setData(null);
-      setLoading(false);
-      return;
-    }
+    if (key === null || !user) return;
 
     let cancelled = false;
-    setLoading(true);
-
     apiFetch<MeResponse>("/me")
-      .then((result) => {
-        if (!cancelled) setData(result);
+      .then((data) => {
+        if (!cancelled) setState({ key, data });
       })
       .catch(() => {
-        if (!cancelled) setData(null);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setState({ key, data: null });
       });
 
     return () => {
       cancelled = true;
     };
-  }, [user, authLoading]);
+  }, [key, user]);
 
-  return { data, loading };
+  // Signed out: there is no request to wait on, so nothing is pending.
+  if (key === "anon") {
+    return { data: null, loading: false };
+  }
+
+  const settled = state.key === key;
+  return { data: settled ? state.data : null, loading: key === null || !settled };
 }

@@ -1,0 +1,15 @@
+{
+	"python-envs.defaultEnvManager": "ms-python.python:conda",
+	"python-envs.defaultPackageManager": "ms-python.python:conda",
+
+	// O backend tem virtualenv próprio, com as versões que o requirements.txt
+	// fixa. Rodar com outro interpretador (uma env conda, por exemplo) pega
+	// outro conjunto de pacotes. Se o VSCode ainda escolher outra env, use
+	// "Python: Select Interpreter" e aponte para este caminho uma vez.
+	"python.defaultInterpreterPath": "${workspaceFolder}/leme-app-backend/.venv/Scripts/python.exe",
+
+	"python.testing.pytestEnabled": true,
+	"python.testing.unittestEnabled": false,
+	"python.testing.pytestArgs": ["tests"],
+	"python.testing.cwd": "${workspaceFolder}/leme-app-backend"
+}

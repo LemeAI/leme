@@ -18,8 +18,9 @@ async function getPage(id: string): Promise<HtmlPage | null> {
 // backend); a sidebar (compartilhar, próprios uploads, upsell de plano) é
 // um Client Component (PageSidebar) porque depende de saber quem é o
 // visitante — ver notas lá.
-export default async function PublicPage({ params }: { params: { id: string } }) {
-  const page = await getPage(params.id);
+export default async function PublicPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const page = await getPage(id);
 
   if (!page) {
     notFound();
