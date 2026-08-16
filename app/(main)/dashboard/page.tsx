@@ -11,6 +11,14 @@ import { useProfile } from "@/lib/hooks/useProfile";
 import ShareButton from "@/components/ShareButton";
 import ManageBillingButton from "@/components/ManageBillingButton";
 
+function getPlanStatusLabel(profile: import("@/lib/types").Profile | undefined): string {
+  if (!profile || profile.plan !== "pro") return "";
+  if (profile.cancel_at_period_end) return " · cancels at period end";
+  if (profile.interval === "year") return " · yearly";
+  if (profile.interval === "month") return " · monthly";
+  return "";
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
@@ -45,7 +53,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="mb-8 flex flex-col gap-3 rounded-2xl border border-ink-100 bg-ink-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className="rounded-full bg-white px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-ink-700 shadow-sm">
             {limits.label}
           </span>
@@ -57,6 +65,7 @@ export default function DashboardPage() {
           {plan === "pro" && profileData?.profile.current_period_end && (
             <span className="text-xs text-ink-400">
               Renews on {formatDate(profileData.profile.current_period_end)}
+              {getPlanStatusLabel(profileData.profile)}
             </span>
           )}
         </div>
@@ -72,7 +81,15 @@ export default function DashboardPage() {
             {atLimit ? "Limit reached — upgrade" : "View Pro plan"}
           </Link>
         ) : (
-          <ManageBillingButton />
+          <div className="flex items-center gap-2">
+            <Link
+              href="/billing"
+              className="w-fit rounded-full bg-white px-4 py-1.5 text-xs font-semibold text-ink-700 shadow-sm transition-colors hover:bg-ink-100"
+            >
+              Billing settings
+            </Link>
+            <ManageBillingButton />
+          </div>
         )}
       </div>
 

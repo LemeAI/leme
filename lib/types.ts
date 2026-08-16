@@ -16,6 +16,8 @@ export type HtmlPage = {
   expires_at_before_pro: string | null;
 };
 
+export type BillingInterval = "month" | "year";
+
 export type Plan = "free" | "pro";
 
 // Espelha ProfileRead (backend/app/presentation/api/schemas/me.py) — os
@@ -26,7 +28,31 @@ export type Profile = {
   plan: Plan;
   created_at: string;
   current_period_end: string | null;
+  cancel_at_period_end: boolean;
+  interval: BillingInterval | null;
 };
+
+export interface SubscriptionDetailsResponse {
+  status: string;
+  interval: BillingInterval | null;
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+}
+
+export interface InvoiceRead {
+  id: string;
+  number: string | null;
+  amount_due: number;
+  currency: string;
+  status: string | null;
+  created: string | null;
+  hosted_invoice_url: string | null;
+  invoice_pdf: string | null;
+}
+
+export interface InvoicesResponse {
+  invoices: InvoiceRead[];
+}
 
 export type ShareLink = {
   id: string;

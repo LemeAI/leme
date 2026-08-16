@@ -1,15 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
-import { describeAuthError, isSilentAuthError } from "@/lib/auth-errors";
+import { describeAuthError } from "@/lib/auth-errors";
 
 // O Google não distingue "entrar" de "cadastrar": o mesmo fluxo cria a
 // conta na primeira vez e autentica nas seguintes. O backend também não
 // precisa saber de nada — o ID token vem no mesmo formato, com o mesmo uid,
 // independente do provedor (ver FirebaseTokenVerifier).
+//
+// Usamos signInWithRedirect em vez de signInWithPopup porque popups sofrem
+// com bloqueadores de popup e com políticas COOP (Cross-Origin-Opener-Policy)
+// em alguns navegadores/ambientes. O redirect redireciona o usuário para o
+// Google e volta para a mesma página, onde getRedirectResult finaliza o login.
 export default function GoogleSignInButton({
   onError,
   disabled = false,
@@ -17,7 +21,6 @@ export default function GoogleSignInButton({
   onError: (message: string | null) => void;
   disabled?: boolean;
 }) {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   async function handleClick() {
@@ -25,13 +28,9 @@ export default function GoogleSignInButton({
     onError(null);
 
     try {
-      await signInWithPopup(getFirebaseAuth(), new GoogleAuthProvider());
-      router.push("/dashboard");
+      await signInWithRedirect(getFirebaseAuth(), new GoogleAuthProvider());
     } catch (err) {
-      // Fechar o popup é decisão do usuário, não falha digna de alerta.
-      if (!isSilentAuthError(err)) {
-        onError(describeAuthError(err));
-      }
+      onError(describeAuthError(err));
       setLoading(false);
     }
   }
@@ -44,7 +43,7 @@ export default function GoogleSignInButton({
       className="flex w-full items-center justify-center gap-3 rounded-full border border-ink-200 bg-white px-4 py-2.5 text-sm font-semibold text-ink-700 shadow-sm transition-colors hover:border-ink-300 hover:bg-ink-50 disabled:opacity-50"
     >
       <GoogleLogo />
-      {loading ? "Opening Google..." : "Continue with Google"}
+      {loading ? "Redirecting to Google..." : "Continue with Google"}
     </button>
   );
 }
