@@ -8,6 +8,7 @@ import {
 } from "@/components/FeatureIcons";
 import { type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
 export async function generateMetadata({
   params,
@@ -23,7 +24,11 @@ export async function generateMetadata({
   };
 }
 
-export default async function HomePage({ params }: { params: Promise<{ lang: string }> }) {
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
   const { lang } = await params;
   const locale = lang as Locale;
   const dict = await getDictionary(locale);
@@ -72,8 +77,16 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   ];
 
   const features = [
-    { title: dict.home.featureUpload, description: dict.home.featureUploadDesc, Icon: UploadIcon },
-    { title: dict.home.featureShare, description: dict.home.featureShareDesc, Icon: ShareLinkIcon },
+    {
+      title: dict.home.featureUpload,
+      description: dict.home.featureUploadDesc,
+      Icon: UploadIcon,
+    },
+    {
+      title: dict.home.featureShare,
+      description: dict.home.featureShareDesc,
+      Icon: ShareLinkIcon,
+    },
     {
       title: dict.home.featureCollaborate,
       description: dict.home.featureCollaborateDesc,
@@ -114,9 +127,11 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
           </Link>
         </div>
 
-        <p className="mt-5 max-w-[52ch] text-xs text-mute-dim">{dict.home.heroNote}</p>
+        <p className="mt-5 max-w-[52ch] text-xs text-mute-dim">
+          {dict.home.heroNote}
+        </p>
 
-        <HeroVisual />
+        <HeroVisual dict={dict} />
       </div>
 
       {/* Faixa de ferramentas: prova de compatibilidade logo abaixo do hero,
@@ -164,7 +179,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
       <section className="wrap pb-24 sm:pb-28">
         <div className="panel px-7 py-14 sm:px-14">
           <p className="eyebrow">{dict.home.howTitle}</p>
-          <h2 className="headline mt-5 max-w-[20ch]">{dict.home.howSubtitle}</h2>
+          <h2 className="headline mt-5 max-w-[20ch]">
+            {dict.home.howSubtitle}
+          </h2>
 
           {/* Aqui a numeração carrega informação: é a ordem real do fluxo. */}
           <ol className="mt-14 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-line-soft bg-line-soft sm:grid-cols-2 lg:grid-cols-4">
@@ -173,8 +190,12 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
                 <span className="text-xs font-medium tracking-[0.14em] text-brand-500">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <h3 className="mt-5 text-lg font-medium tracking-[-0.02em]">{step.title}</h3>
-                <p className="mt-2 text-[14.5px] text-mute">{step.description}</p>
+                <h3 className="mt-5 text-lg font-medium tracking-[-0.02em]">
+                  {step.title}
+                </h3>
+                <p className="mt-2 text-[14.5px] text-mute">
+                  {step.description}
+                </p>
               </li>
             ))}
           </ol>
@@ -183,7 +204,9 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
 
       <div className="glow-cta rule py-28 text-center">
         <div className="wrap">
-          <h2 className="headline mx-auto max-w-[18ch]">{dict.home.finalTitle}</h2>
+          <h2 className="headline mx-auto max-w-[18ch]">
+            {dict.home.finalTitle}
+          </h2>
           <p className="lead mx-auto mt-6">{dict.home.finalSubtitle}</p>
           <Link href={`/${locale}/new`} className="btn btn-primary btn-lg mt-9">
             {dict.home.ctaUpload}
@@ -194,49 +217,120 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   );
 }
 
-// O hero mostra a transformação que o produto faz: arquivos .html soltos
-// viram páginas com link próprio. Os dois cartões são a tese da página.
-function HeroVisual() {
+function HeroVisual({ dict }: { dict: Dictionary }) {
+  const avatars = [
+    { tone: "bg-brand-500 text-black", label: "A", cls: "scene scene-avatar-1" },
+    { tone: "bg-white/25 text-white", label: "M", cls: "scene scene-avatar-2" },
+    { tone: "bg-white/15 text-mute", label: "+", cls: "scene scene-avatar-3" },
+  ];
+
   return (
-    <div className="glow-hero relative mt-20 flex h-[300px] items-center justify-center overflow-hidden rounded-t-2xl border border-b-0 border-line-soft sm:h-[340px]">
-      <FileCard
-        name="landing-page.html"
-        className="-rotate-6"
-        widths={["w-full", "w-3/4", "w-1/2"]}
-      />
-      <FileCard
-        name="dashboard-ui.html"
-        className="mt-16 rotate-6"
-        widths={["w-full", "w-2/3", "w-5/6"]}
-      />
+    <div className="glow-hero relative mt-20 flex h-[420px] items-center justify-center overflow-hidden rounded-t-2xl border border-b-0 border-line-soft sm:h-[520px]">
+      <div className="relative w-[290px] sm:w-[560px]">
+        <div className="scene scene-window relative w-full overflow-hidden rounded-xl border border-line bg-surface-2 shadow-[0_32px_80px_-20px_rgba(0,0,0,0.95)]">
+          <div className="flex items-center gap-3 border-b border-line-soft px-4 py-3">
+            <span className="flex shrink-0 gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-white/20" />
+              <span className="h-2 w-2 rounded-full bg-white/20" />
+              <span className="h-2 w-2 rounded-full bg-brand-500/70" />
+            </span>
+            <span className="flex min-w-0 flex-1 items-center gap-2 rounded-md bg-black/50 px-2.5 py-1.5">
+              <ShareLinkIcon className="h-3 w-3 shrink-0 text-mute-dim" />
+              <span className="scene scene-url block overflow-hidden whitespace-nowrap text-[11px] text-mute sm:text-xs">
+                leme-app.com/p/a1b2c3
+              </span>
+            </span>
+            <span className="scene scene-copy-btn shrink-0 rounded px-2 py-1 text-[10px] font-medium sm:text-[11px]">
+              {dict.copyLink.copy}
+            </span>
+          </div>
+
+          <div className="space-y-3 px-5 py-6 sm:px-7 sm:py-8">
+            <div className="scene scene-line-1 h-3 w-1/2 rounded-full bg-white/25" />
+            <div className="scene scene-line-2 h-2 w-full rounded-full bg-white/10" />
+            <div className="scene scene-line-3 h-2 w-5/6 rounded-full bg-white/10" />
+            <div className="scene scene-line-4 grid grid-cols-3 gap-2.5 pt-2">
+              {["bg-white/[0.07]", "bg-white/[0.07]", "bg-brand-500/15"].map((tone, i) => (
+                <div key={i} className={`h-12 rounded-lg sm:h-16 ${tone}`} />
+              ))}
+            </div>
+          </div>
+
+          <div className="h-0.5 w-full bg-white/5">
+            <div className="scene scene-progress h-full bg-brand-500" />
+          </div>
+        </div>
+
+        <div className="scene scene-file absolute left-1/2 top-1/2 w-44 -translate-x-1/2 -translate-y-1/2 rounded-lg border border-line bg-surface p-3.5 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.95)] sm:w-52">
+          <div className="mb-3 flex items-center gap-2">
+            <UploadIcon className="h-4 w-4 shrink-0 text-brand-500" />
+            <span className="truncate text-[11px] text-mute">landing-page.html</span>
+          </div>
+          <div className="space-y-1.5">
+            <div className="h-1.5 w-full rounded-full bg-white/10" />
+            <div className="h-1.5 w-2/3 rounded-full bg-white/10" />
+          </div>
+        </div>
+
+        <div className="scene scene-copied absolute -top-5 right-4 whitespace-nowrap rounded-full border border-brand-500/40 bg-brand-500/15 px-3 py-1 text-[11px] font-medium text-brand-500">
+          {dict.copyLink.copied}
+        </div>
+
+        <div className="scene scene-views absolute -bottom-6 -left-4 flex items-center gap-2.5 rounded-xl border border-line bg-surface/95 px-3.5 py-2.5 shadow-lg backdrop-blur-sm sm:-left-14">
+          <EyeIcon />
+          <span className="block h-5 overflow-hidden">
+            <span className="scene scene-count block">
+              {["12", "128", "742", "1.248"].map((n) => (
+                <span key={n} className="block h-5 text-sm font-medium leading-5 tabular-nums">
+                  {n}
+                </span>
+              ))}
+            </span>
+          </span>
+        </div>
+
+        <div className="scene scene-share absolute -right-4 top-1/4 flex items-center gap-2.5 rounded-xl border border-line bg-surface/95 px-3.5 py-2.5 shadow-lg backdrop-blur-sm sm:-right-14">
+          <ShareLinkIcon className="h-4 w-4 shrink-0 text-brand-500" />
+          <span className="flex -space-x-2">
+            {avatars.map(({ tone, label, cls }) => (
+              <span
+                key={label}
+                className={`${cls} flex h-5 w-5 items-center justify-center rounded-full border border-surface text-[9px] font-semibold ${tone}`}
+              >
+                {label}
+              </span>
+            ))}
+          </span>
+        </div>
+
+        <div className="scene scene-comment absolute -bottom-9 right-2 flex max-w-[210px] items-start gap-2.5 rounded-xl border border-line bg-surface/95 px-3.5 py-2.5 shadow-lg backdrop-blur-sm sm:-right-8">
+          <CollaborateIcon className="h-4 w-4 shrink-0 text-brand-500" />
+          <span className="min-w-0 space-y-1.5 pt-0.5">
+            <span className="block h-1.5 w-24 rounded-full bg-white/20" />
+            <span className="block h-1.5 w-16 rounded-full bg-white/10" />
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
 
-function FileCard({
-  name,
-  className,
-  widths,
-}: {
-  name: string;
-  className: string;
-  widths: string[];
-}) {
+
+
+function EyeIcon() {
   return (
-    <div
-      className={`w-44 rounded-xl border border-line-soft bg-surface-2 p-3.5 shadow-[0_16px_40px_-12px_rgba(0,0,0,0.8)] ${className}`}
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="h-3.5 w-3.5 text-brand-500"
     >
-      <div className="mb-3 flex gap-1.5">
-        <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
-        <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
-        <span className="h-1.5 w-1.5 rounded-full bg-brand-500/60" />
-      </div>
-      <div className="space-y-1.5">
-        {widths.map((width, index) => (
-          <div key={index} className={`h-1.5 rounded-full bg-white/10 ${width}`} />
-        ))}
-      </div>
-      <p className="mt-3 truncate text-[11px] text-mute-dim">{name}</p>
-    </div>
+      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="2.75" />
+    </svg>
   );
 }
