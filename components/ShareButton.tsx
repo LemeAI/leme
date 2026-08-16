@@ -1,9 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import useSWRMutation from "swr/mutation";
 import CopyLink from "@/components/CopyLink";
 import { ApiError, apiFetch } from "@/lib/api";
 import type { ShareResponse } from "@/lib/types";
+
+interface ShareBody {
+  page_id: string;
+}
+
+async function createShareLink(
+  url: string,
+  { arg }: { arg: ShareBody },
+): Promise<ShareResponse> {
+  return apiFetch<ShareResponse>(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(arg),
+  });
+}
 
 export default function ShareButton({
   pageId,
@@ -12,29 +27,21 @@ export default function ShareButton({
   pageId: string;
   initialUrl?: string | null;
 }) {
-  const [url, setUrl] = useState<string | null>(initialUrl ?? null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { data, trigger, isMutating, error } = useSWRMutation(
+    "/share-links",
+    createShareLink,
+  );
+
+  const url = data?.url ?? initialUrl ?? null;
+  const errorMessage =
+    error instanceof ApiError
+      ? error.message
+      : error
+        ? "Connection error while generating the link."
+        : null;
 
   async function generate() {
-    setLoading(true);
-    setError(null);
-
-    try {
-      // O endpoint já devolve o link existente se a página tiver um — nunca
-      // cria um segundo link pra mesma página.
-      const data = await apiFetch<ShareResponse>("/share-links", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ page_id: pageId }),
-      });
-
-      setUrl(data.url);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Connection error while generating the link.");
-    } finally {
-      setLoading(false);
-    }
+    await trigger({ page_id: pageId });
   }
 
   if (url) {
@@ -45,13 +52,13 @@ export default function ShareButton({
     <div className="flex flex-col items-end gap-1">
       <button
         onClick={generate}
-        disabled={loading}
+        disabled={isMutating}
         type="button"
         className="rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 disabled:opacity-50"
       >
-        {loading ? "Generating..." : "Share"}
+        {isMutating ? "Generating..." : "Share"}
       </button>
-      {error && <span className="text-xs text-red-600">{error}</span>}
+      {errorMessage && <span className="text-xs text-red-600">{errorMessage}</span>}
     </div>
   );
 }

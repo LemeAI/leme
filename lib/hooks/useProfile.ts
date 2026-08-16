@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import useSWR from "swr";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import type { MeResponse } from "@/lib/types";
@@ -8,49 +8,27 @@ import type { MeResponse } from "@/lib/types";
 interface UseProfileResult {
   data: MeResponse | null;
   loading: boolean;
-}
-
-interface FetchState {
-  /** Identity the profile belongs to; null before anything has loaded. */
-  key: string | null;
-  data: MeResponse | null;
+  error: Error | undefined;
 }
 
 /**
  * Fetches the authenticated user's plan and usage via GET /me.
  *
- * Like `useMyPages`, `loading` is derived rather than assigned inside the
- * effect, which avoids a synchronous setState and the cascading render it
- * causes.
+ * Only runs when a user is signed in. Uses SWR for caching, deduplication
+ * and automatic revalidation when the tab regains focus.
  */
 export function useProfile(): UseProfileResult {
   const { user, loading: authLoading } = useAuth();
-  const [state, setState] = useState<FetchState>({ key: null, data: null });
 
-  const key = authLoading ? null : user ? `user:${user.uid}` : "anon";
+  const key = user ? "/me" : null;
 
-  useEffect(() => {
-    if (key === null || !user) return;
+  const { data, error, isLoading } = useSWR<MeResponse>(key, apiFetch, {
+    keepPreviousData: false,
+  });
 
-    let cancelled = false;
-    apiFetch<MeResponse>("/me")
-      .then((data) => {
-        if (!cancelled) setState({ key, data });
-      })
-      .catch(() => {
-        if (!cancelled) setState({ key, data: null });
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [key, user]);
-
-  // Signed out: there is no request to wait on, so nothing is pending.
-  if (key === "anon") {
-    return { data: null, loading: false };
-  }
-
-  const settled = state.key === key;
-  return { data: settled ? state.data : null, loading: key === null || !settled };
+  return {
+    data: data ?? null,
+    loading: authLoading || isLoading,
+    error,
+  };
 }

@@ -1,19 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { anonHeaders, apiFetch } from "@/lib/api";
+import useSWR from "swr";
+import { apiFetch, anonHeaders } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import type { HtmlPage } from "@/lib/types";
 
 interface UseMyPagesResult {
   pages: HtmlPage[];
   loading: boolean;
-}
-
-interface FetchState {
-  /** Identity the pages belong to; null before anything has loaded. */
-  key: string | null;
-  pages: HtmlPage[];
+  error: Error | undefined;
 }
 
 /**
@@ -21,39 +16,35 @@ interface FetchState {
  * pages via GET /pages/mine, or this browser's anonymous uploads via
  * GET /pages/mine/anonymous when signed out.
  *
- * `loading` is derived by comparing the identity we have data for against
- * the current one, rather than being set at the top of the effect —
- * calling setState synchronously in an effect body triggers an extra
- * render pass on every identity change.
+ * Uses SWR for request deduplication, caching and stale-while-revalidate.
+ * The key changes whenever the Firebase identity changes, so signing in/out
+ * automatically refetches.
  */
 export function useMyPages(): UseMyPagesResult {
   const { user, loading: authLoading } = useAuth();
-  const [state, setState] = useState<FetchState>({ key: null, pages: [] });
 
-  const key = authLoading ? null : user ? `user:${user.uid}` : "anon";
+  const key = authLoading
+    ? null
+    : user
+      ? (["/pages/mine", "user"] as const)
+      : (["/pages/mine/anonymous", "anon"] as const);
 
-  useEffect(() => {
-    if (key === null) return;
+  const { data, error, isLoading } = useSWR<HtmlPage[]>(
+    key,
+    async ([path, kind]) => {
+      const headers = kind === "anon" ? anonHeaders() : undefined;
+      return apiFetch<HtmlPage[]>(path, headers ? { headers } : {});
+    },
+    {
+      // Avoid showing stale anonymous pages while the auth state is still
+      // resolving or right after signing in/out.
+      keepPreviousData: false,
+    },
+  );
 
-    let cancelled = false;
-    const path = user ? "/pages/mine" : "/pages/mine/anonymous";
-    const request = user
-      ? apiFetch<HtmlPage[]>(path)
-      : apiFetch<HtmlPage[]>(path, { headers: anonHeaders() });
-
-    request
-      .then((pages) => {
-        if (!cancelled) setState({ key, pages });
-      })
-      .catch(() => {
-        if (!cancelled) setState({ key, pages: [] });
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [key, user]);
-
-  const settled = state.key === key;
-  return { pages: settled ? state.pages : [], loading: key === null || !settled };
+  return {
+    pages: data ?? [],
+    loading: authLoading || isLoading,
+    error,
+  };
 }
