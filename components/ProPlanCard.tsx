@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ApiError, apiFetch } from "@/lib/api";
 
 const MONTHLY_PRICE = 9;
 const YEARLY_PRICE = 90; // ~2 months free compared to paying monthly
@@ -22,30 +23,21 @@ export default function ProPlanCard() {
     setError(null);
 
     try {
-      const res = await fetch("/api/billing/checkout", {
+      const data = await apiFetch<{ url: string }>("/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ interval }),
       });
 
-      if (res.status === 401) {
-        router.push("/login");
-        return;
-      }
-
-      const data = await res.json();
-
-      if (!res.ok || !data.url) {
-        setError(data.error ?? "Failed to start checkout.");
-        setLoading(false);
-        return;
-      }
-
       // Redireciona pro Stripe Checkout (fora do app, precisa ser navegação
       // completa, não client-side routing).
       window.location.href = data.url;
-    } catch {
-      setError("Connection error while starting checkout.");
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        router.push("/login");
+        return;
+      }
+      setError(err instanceof ApiError ? err.message : "Connection error while starting checkout.");
       setLoading(false);
     }
   }

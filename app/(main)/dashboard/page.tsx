@@ -1,57 +1,36 @@
+"use client";
+
+import { useEffect } from "react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase";
-import { formatDate, formatExpiration, getSiteUrl } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { formatDate, formatExpiration } from "@/lib/utils";
 import { getPlanLimits, isExpired } from "@/lib/plans";
+import { useAuth } from "@/lib/auth";
+import { useMyPages } from "@/lib/hooks/useMyPages";
+import { useProfile } from "@/lib/hooks/useProfile";
 import ShareButton from "@/components/ShareButton";
 import ManageBillingButton from "@/components/ManageBillingButton";
-import type { HtmlPage, ShareLink } from "@/lib/types";
 
-export default async function DashboardPage() {
-  const supabase = createSupabaseServerClient();
+export default function DashboardPage() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+  const { pages, loading: pagesLoading } = useMyPages();
+  const { data: profileData } = useProfile();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("plan, current_period_end")
-    .eq("id", user.id)
-    .single();
-
-  const plan = profile?.plan ?? "free";
-  const limits = getPlanLimits(plan);
-
-  const { data: pages } = await supabase
-    .from("html_pages")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
-
-  const activePagesCount = (pages ?? []).filter((p: HtmlPage) => !isExpired(p.expires_at)).length;
-  const atLimit = limits.maxActivePages !== null && activePagesCount >= limits.maxActivePages;
-
-  const pageIds = (pages ?? []).map((p: HtmlPage) => p.id);
-
-  const { data: shareLinks } = pageIds.length
-    ? await supabase
-        .from("share_links")
-        .select("*")
-        .in("page_id", pageIds)
-        .order("created_at", { ascending: false })
-    : { data: [] as ShareLink[] };
-
-  const latestShareByPage = new Map<string, string>();
-  for (const link of shareLinks ?? []) {
-    if (!latestShareByPage.has(link.page_id)) {
-      latestShareByPage.set(link.page_id, `${getSiteUrl()}/s/${link.token}`);
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace("/login");
     }
+  }, [authLoading, user, router]);
+
+  if (authLoading || !user) {
+    return null;
   }
+
+  const plan = profileData?.profile.plan ?? "free";
+  const limits = getPlanLimits(plan);
+  const activePagesCount = pages.filter((page) => !isExpired(page.expires_at)).length;
+  const atLimit = limits.maxActivePages !== null && activePagesCount >= limits.maxActivePages;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
@@ -75,9 +54,9 @@ export default async function DashboardPage() {
               ? `${activePagesCount} active page(s) · no limit`
               : `${activePagesCount}/${limits.maxActivePages} active pages`}
           </span>
-          {plan === "pro" && profile?.current_period_end && (
+          {plan === "pro" && profileData?.profile.current_period_end && (
             <span className="text-xs text-ink-400">
-              Renews on {formatDate(profile.current_period_end)}
+              Renews on {formatDate(profileData.profile.current_period_end)}
             </span>
           )}
         </div>
@@ -97,7 +76,7 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      {!pages || pages.length === 0 ? (
+      {pagesLoading ? null : pages.length === 0 ? (
         <p className="text-sm text-ink-500">
           You haven&apos;t uploaded any HTML yet.{" "}
           <Link href="/" className="font-medium text-brand-600 hover:underline">
@@ -107,7 +86,7 @@ export default async function DashboardPage() {
         </p>
       ) : (
         <ul className="flex flex-col gap-3">
-          {pages.map((page: HtmlPage) => {
+          {pages.map((page) => {
             const expirationLabel = formatExpiration(page.expires_at);
             const expired = isExpired(page.expires_at);
 
@@ -124,9 +103,7 @@ export default async function DashboardPage() {
                     {page.title}
                   </Link>
                   {page.description && (
-                    <p className="mt-0.5 truncate text-sm text-ink-500">
-                      {page.description}
-                    </p>
+                    <p className="mt-0.5 truncate text-sm text-ink-500">{page.description}</p>
                   )}
                   <p className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-ink-400">
                     <span>
@@ -144,7 +121,7 @@ export default async function DashboardPage() {
                   </p>
                 </div>
 
-                <ShareButton pageId={page.id} initialUrl={latestShareByPage.get(page.id)} />
+                <ShareButton pageId={page.id} />
               </li>
             );
           })}

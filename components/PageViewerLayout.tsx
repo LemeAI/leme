@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import HtmlViewer from "@/components/HtmlViewer";
 import CopyLink from "@/components/CopyLink";
 import CollapsibleSidebar from "@/components/CollapsibleSidebar";
+import { getPageContentUrl } from "@/lib/api-url";
 import { formatDate } from "@/lib/utils";
 
 interface ViewerPage {
@@ -32,7 +33,7 @@ export default function PageViewerLayout({
   return (
     <div className="flex h-[calc(100vh-4rem)] w-full flex-col overflow-hidden sm:flex-row">
       <div className="min-h-0 flex-1 bg-white">
-        <HtmlViewer src={`/api/file/${page.id}`} title={page.title} fill />
+        <HtmlViewer src={getPageContentUrl(page.id)} title={page.title} fill />
       </div>
 
       <CollapsibleSidebar

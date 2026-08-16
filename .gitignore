@@ -32,3 +32,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# python (backend/)
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+
+# uploads gravados pelo backend de storage local (desenvolvimento)
+.local-storage/
+
+# Backend vive no proprio repositorio (LemeAI/leme-app-backend)
+leme-app-backend/

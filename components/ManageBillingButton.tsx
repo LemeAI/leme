@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ApiError, apiFetch } from "@/lib/api";
 
 // Abre o Stripe Billing Portal, onde quem assina o Pro pode trocar cartão,
 // mudar de mensal pra anual (ou vice-versa) ou cancelar a assinatura.
@@ -13,18 +14,10 @@ export default function ManageBillingButton() {
     setError(null);
 
     try {
-      const res = await fetch("/api/billing/portal", { method: "POST" });
-      const data = await res.json();
-
-      if (!res.ok || !data.url) {
-        setError(data.error ?? "Failed to open billing portal.");
-        setLoading(false);
-        return;
-      }
-
+      const data = await apiFetch<{ url: string }>("/billing/portal", { method: "POST" });
       window.location.href = data.url;
-    } catch {
-      setError("Connection error while opening billing portal.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Connection error while opening billing portal.");
       setLoading(false);
     }
   }

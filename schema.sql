@@ -313,3 +313,18 @@ drop policy if exists "html_files_delete_any" on storage.objects;
 create policy "html_files_delete_any"
   on storage.objects for delete
   using (bucket_id = 'html-files');
+
+-- ============================================================================
+-- A partir daqui, o schema é versionado via Alembic (backend/migrations),
+-- não mais neste arquivo. O conteúdo acima corresponde exatamente à
+-- revisão baseline backend/migrations/versions/0001_initial_schema.py —
+-- se este arquivo já foi rodado manualmente no SQL Editor do Supabase,
+-- rode `alembic stamp 0001_initial_schema` no backend em vez de
+-- `alembic upgrade head` a partir do zero.
+--
+-- A migração que substitui o Supabase Auth pelo Firebase Auth (colunas de
+-- dono uuid -> text, remoção do trigger de signup, RLS desligado, role
+-- leme_backend) está em
+-- backend/migrations/versions/0002_firebase_auth_migration.py — rode
+-- `alembic upgrade head` no backend para aplicá-la.
+-- ============================================================================
