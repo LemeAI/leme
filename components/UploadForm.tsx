@@ -3,12 +3,16 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ApiError, anonHeaders, apiFetch } from "@/lib/api";
+import { useLocale } from "@/lib/i18n/use-locale";
 import type { UploadResponse } from "@/lib/types";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
 const MAX_SIZE_BYTES = 2 * 1024 * 1024;
 
-export default function UploadForm() {
+export default function UploadForm({ dict }: { dict: Dictionary }) {
   const router = useRouter();
+  const locale = useLocale();
+  const t = dict.uploadForm;
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -20,12 +24,12 @@ export default function UploadForm() {
     setError(null);
 
     if (selected && !selected.name.toLowerCase().endsWith(".html")) {
-      setError("Select an .html file.");
+      setError(t.errors.notHtml);
       setFile(null);
       return;
     }
     if (selected && selected.size > MAX_SIZE_BYTES) {
-      setError("The file must be at most 2MB.");
+      setError(t.errors.tooLarge);
       setFile(null);
       return;
     }
@@ -39,7 +43,7 @@ export default function UploadForm() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!file) {
-      setError("Choose an .html file to upload.");
+      setError(t.errors.noFile);
       return;
     }
 
@@ -60,59 +64,56 @@ export default function UploadForm() {
 
       // Redireciona direto para a página com o HTML renderizado —
       // sem tela intermediária de "sucesso".
-      router.push(`/p/${data.page.id}`);
+      router.push(`/${locale}/p/${data.page.id}`);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Connection error while uploading the file.");
+      setError(err instanceof ApiError ? err.message : t.errors.generic);
       setLoading(false);
     }
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex flex-col gap-4 rounded-2xl border border-ink-100 bg-white p-6 shadow-card"
-    >
-      <label className="flex flex-col gap-1 text-sm font-medium text-ink-700">
-        HTML file (.html, up to 2MB)
+    <form onSubmit={handleSubmit} className="panel flex flex-col gap-5 p-6">
+      <label className="field-label">
+        {t.fileLabel}
         <input
           type="file"
           accept=".html,text/html"
           onChange={handleFileChange}
-          className="mt-1 rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm text-ink-700 file:mr-3 file:rounded-full file:border-0 file:bg-brand-500 file:px-4 file:py-1.5 file:text-sm file:font-semibold file:text-white hover:file:bg-brand-600"
+          className="field-input file:mr-3 file:cursor-pointer file:rounded file:border-0 file:bg-white/10 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:file:bg-white/20"
         />
       </label>
 
-      <label className="flex flex-col gap-1 text-sm font-medium text-ink-700">
-        Title
+      <label className="field-label">
+        {t.titleLabel}
         <input
           type="text"
           required
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="E.g.: Landing page generated with GPT"
-          className="mt-1 rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+          placeholder={t.titlePlaceholder}
+          className="field-input"
         />
       </label>
 
-      <label className="flex flex-col gap-1 text-sm font-medium text-ink-700">
-        Description (optional)
+      <label className="field-label">
+        {t.descriptionLabel}
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
-          placeholder="Tell us a bit about this HTML..."
-          className="mt-1 rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+          placeholder={t.descriptionPlaceholder}
+          className="field-input resize-y"
         />
       </label>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="alert alert-error">{error}</p>}
 
       <button
         type="submit"
         disabled={loading}
-        className="w-fit rounded-full bg-brand-500 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 disabled:opacity-50"
+        className="btn btn-primary w-fit disabled:opacity-50"
       >
-        {loading ? "Uploading..." : "Upload"}
+        {loading ? t.uploading : t.upload}
       </button>
     </form>
   );

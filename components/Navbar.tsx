@@ -5,40 +5,53 @@ import { signOut } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth";
 import Logo from "@/components/Logo";
+import LanguageSwitch from "@/components/LanguageSwitch";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
+import type { Locale } from "@/lib/i18n/config";
 
-export default function Navbar() {
+export default function Navbar({ dict, locale }: { dict: Dictionary; locale: Locale }) {
   const { user, loading } = useAuth();
 
   return (
-    <header className="sticky top-0 z-10 h-16 border-b border-ink-100 bg-white/80 backdrop-blur">
-      <nav className="mx-auto flex h-full max-w-5xl items-center justify-between px-4">
-        <Link href="/">
+    <header className="sticky top-0 z-50 border-b border-line-soft bg-black/80 backdrop-blur-[14px]">
+      <nav className="wrap flex h-16 items-center justify-between gap-6">
+        <Link href={`/${locale}`} className="rounded-md">
           <Logo />
         </Link>
 
-        <div className="flex items-center gap-5 text-sm">
-          <Link href="/pricing" className="hidden text-ink-600 hover:text-ink-900 sm:inline">
-            Plans
+        <div className="flex items-center gap-1 text-sm sm:gap-2">
+          <Link
+            href={`/${locale}/pricing`}
+            className="hidden rounded-md px-2 py-1.5 text-mute transition-colors hover:text-white sm:inline"
+          >
+            {dict.nav.plans}
           </Link>
+          <Link
+            href={`/${locale}/blog`}
+            className="hidden rounded-md px-2 py-1.5 text-mute transition-colors hover:text-white sm:inline"
+          >
+            {dict.nav.blog}
+          </Link>
+          <LanguageSwitch currentLocale={locale} />
           {loading ? null : user ? (
             <>
-              <Link href="/dashboard" className="text-ink-600 hover:text-ink-900">
-                My files
+              <Link
+                href={`/${locale}/dashboard`}
+                className="rounded-md px-2 py-1.5 text-mute transition-colors hover:text-white"
+              >
+                {dict.nav.myFiles}
               </Link>
               <button
                 type="button"
                 onClick={() => signOut(getFirebaseAuth())}
-                className="rounded-full border border-ink-200 px-4 py-1.5 font-medium text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50"
+                className="btn btn-ghost ml-1 py-2 text-sm"
               >
-                Sign out
+                {dict.nav.signOut}
               </button>
             </>
           ) : (
-            <Link
-              href="/login"
-              className="rounded-full bg-brand-500 px-4 py-1.5 font-semibold text-white shadow-sm transition-colors hover:bg-brand-600"
-            >
-              Sign in
+            <Link href={`/${locale}/login`} className="btn btn-primary ml-1 py-2 text-sm">
+              {dict.nav.signIn}
             </Link>
           )}
         </div>

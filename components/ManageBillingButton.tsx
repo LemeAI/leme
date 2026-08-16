@@ -5,7 +5,13 @@ import { ApiError, apiFetch } from "@/lib/api";
 
 // Abre o Stripe Billing Portal, onde quem assina o Pro pode trocar cartão,
 // mudar de mensal pra anual (ou vice-versa) ou cancelar a assinatura.
-export default function ManageBillingButton() {
+export default function ManageBillingButton({
+  label,
+  loadingLabel,
+}: {
+  label: string;
+  loadingLabel: string;
+}) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,11 +34,11 @@ export default function ManageBillingButton() {
         type="button"
         onClick={openPortal}
         disabled={loading}
-        className="w-fit rounded-full bg-white px-4 py-1.5 text-xs font-semibold text-ink-700 shadow-sm transition-colors hover:bg-ink-100 disabled:opacity-50"
+        className="btn btn-ghost w-fit py-2 text-xs disabled:opacity-50"
       >
-        {loading ? "Opening..." : "Manage billing"}
+        {loading ? loadingLabel : label}
       </button>
-      {error && <span className="text-xs text-red-600">{error}</span>}
+      {error && <span className="text-xs text-red-400">{error}</span>}
     </div>
   );
 }

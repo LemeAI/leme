@@ -8,9 +8,175 @@ body {
 }
 
 body {
-  @apply bg-white text-ink-900;
+  @apply bg-black text-white antialiased;
+  line-height: 1.55;
 }
 
 ::selection {
-  @apply bg-brand-600 text-white;
+  @apply bg-brand-500 text-black;
+}
+
+/* Foco de teclado visível em todo elemento interativo. O anel laranja tem
+   7.31:1 sobre o preto, então funciona como indicador sozinho. */
+@layer base {
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-black;
+  }
+}
+
+/* Sistema visual do tema escuro. Estas classes são a linguagem comum das
+   fases de migração — cada página nova monta a partir daqui em vez de
+   repetir os mesmos valores de clamp/tracking soltos no JSX. */
+@layer components {
+  /* Container padrão: 1240px com respiro lateral. */
+  .wrap {
+    @apply mx-auto w-full max-w-wrap px-5 sm:px-8;
+  }
+
+  /* Divisor estrutural entre blocos. */
+  .rule {
+    @apply border-t border-line-soft;
+  }
+
+  /* Cartão/bloco elevado sobre o preto. */
+  .panel {
+    @apply rounded-xl border border-line-soft bg-surface;
+  }
+
+  .panel-accent {
+    @apply rounded-xl border border-brand-500/40;
+    background:
+      radial-gradient(420px 200px at 50% 0%, rgba(255, 106, 0, 0.1) 0%, rgba(255, 106, 0, 0) 70%),
+      theme("colors.surface.DEFAULT");
+  }
+
+  /* Brilho da marca subindo pela base do bloco. É a única fonte de cor
+     ambiente do tema — usada no hero e no CTA final, e em mais nada. */
+  .glow-hero {
+    background:
+      radial-gradient(760px 340px at 50% 120%, rgba(255, 106, 0, 0.3) 0%, rgba(255, 106, 0, 0) 68%),
+      theme("colors.surface.DEFAULT");
+  }
+  .glow-cta {
+    background:
+      radial-gradient(820px 420px at 50% 110%, rgba(255, 106, 0, 0.28) 0%, rgba(255, 106, 0, 0) 70%),
+      theme("colors.surface.DEFAULT");
+  }
+
+  /* Rótulo de seção. O ponto laranja é o único uso decorativo da cor de
+     marca — em todo o resto ela carrega ação ou sequência. */
+  .eyebrow {
+    @apply flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.16em] text-mute-dim;
+  }
+  .eyebrow::before {
+    @apply block h-[5px] w-[5px] flex-none rounded-full bg-brand-500;
+    content: "";
+  }
+
+  .display {
+    font-size: clamp(2.6rem, 6.2vw, 5.1rem);
+    @apply font-medium leading-[1.02] tracking-[-0.045em];
+  }
+
+  .headline {
+    font-size: clamp(1.9rem, 3.6vw, 3.1rem);
+    @apply font-medium leading-[1.08] tracking-[-0.035em];
+  }
+
+  .subhead {
+    @apply text-xl font-medium leading-tight tracking-[-0.02em];
+  }
+
+  .section-head {
+    @apply text-[23px] font-medium leading-tight tracking-[-0.025em];
+  }
+
+  /* Título de tela de app (dashboard, envios, cobrança). Menor que o
+     .headline das páginas de marketing: aqui o título orienta, não vende. */
+  .title-page {
+    @apply text-[28px] font-medium leading-tight tracking-[-0.03em] sm:text-[32px];
+  }
+
+  /* Chip de metadado: plano, status, contagem. */
+  .chip {
+    @apply inline-flex items-center rounded-full border border-line bg-white/5 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.1em] text-white;
+  }
+
+  .lead {
+    font-size: clamp(1rem, 1.35vw, 1.2rem);
+    @apply max-w-[60ch] text-mute;
+  }
+
+  .btn {
+    @apply inline-flex items-center gap-2 rounded-md border border-transparent px-[22px] py-[11px] text-sm font-medium transition-colors;
+  }
+  /* Primário invertido: branco sobre preto é o maior contraste da paleta
+     (21:1). No hover vira laranja com texto preto — 7.31:1, enquanto
+     laranja com texto branco ficaria em 2.87:1 e reprovaria AA. */
+  .btn-primary {
+    @apply bg-white text-black hover:bg-brand-500 hover:text-black;
+  }
+  .btn-ghost {
+    @apply border-line text-white hover:border-white;
+  }
+  .btn-brand {
+    @apply bg-brand-500 text-black hover:bg-brand-400;
+  }
+  .btn-danger {
+    @apply border-red-500/40 text-red-400 hover:border-red-500/70 hover:bg-red-500/10;
+  }
+  .btn-lg {
+    @apply px-[30px] py-[15px] text-[15px];
+  }
+
+  .field-label {
+    @apply block text-sm font-medium text-mute;
+  }
+
+  .field-input {
+    @apply mt-2 w-full rounded-md border border-line bg-white/5 px-3.5 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-mute-dim focus:border-brand-500;
+  }
+
+  .segmented {
+    @apply flex items-center gap-1 rounded-md border border-line-soft bg-black/40 p-1 text-sm;
+  }
+
+  .segmented-item {
+    @apply flex-1 rounded py-1.5 font-medium transition-colors;
+  }
+
+  .segmented-item-on {
+    @apply bg-white text-black;
+  }
+
+  .segmented-item-off {
+    @apply text-mute hover:text-white;
+  }
+
+  .alert {
+    @apply rounded-md border px-3.5 py-2.5 text-sm;
+  }
+
+  .alert-error {
+    @apply border-red-500/30 bg-red-500/10 text-red-400;
+  }
+
+  .alert-success {
+    @apply border-emerald-500/30 bg-emerald-500/10 text-emerald-400;
+  }
+
+  .alert-warning {
+    @apply border-amber-500/30 bg-amber-500/10 text-amber-400;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

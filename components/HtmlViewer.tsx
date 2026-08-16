@@ -18,7 +18,7 @@ export default function HtmlViewer({
       // renderizado, mas bloqueia acesso a same-origin, popups, etc.
       sandbox="allow-scripts allow-forms allow-popups allow-modals"
       referrerPolicy="no-referrer"
-      className={fill ? "h-full w-full border-0 bg-white" : "h-[70vh] w-full"}
+      className={fill ? "h-full w-full border-0 bg-white" : "h-[70vh] w-full bg-white"}
     />
   );
 
@@ -27,8 +27,6 @@ export default function HtmlViewer({
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-card">
-      {iframe}
-    </div>
+    <div className="overflow-hidden rounded-xl border border-line-soft bg-white">{iframe}</div>
   );
 }

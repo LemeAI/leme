@@ -2,9 +2,12 @@
 
 import { useInvoices } from "@/lib/hooks/useInvoices";
 import { formatDate } from "@/lib/utils";
+import { getDateLocale } from "@/lib/i18n/date-locale";
+import { useLocale } from "@/lib/i18n/use-locale";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
-function formatAmount(amount: number, currency: string): string {
-  const formatter = new Intl.NumberFormat("en-US", {
+function formatAmount(amount: number, currency: string, locale: string): string {
+  const formatter = new Intl.NumberFormat(locale, {
     style: "currency",
     currency: currency.toUpperCase(),
     minimumFractionDigits: 2,
@@ -12,50 +15,53 @@ function formatAmount(amount: number, currency: string): string {
   return formatter.format(amount / 100);
 }
 
-export default function InvoicesList() {
+export default function InvoicesList({ dict }: { dict: Dictionary }) {
   const { data, loading, error } = useInvoices();
+  const locale = useLocale();
+  const dateLocale = getDateLocale(locale);
+  const i = dict.billing.invoices;
 
   if (loading) {
-    return <p className="text-sm text-ink-500">Loading invoices...</p>;
+    return <p className="text-sm text-mute">{i.loading}</p>;
   }
 
   if (error) {
-    return <p className="text-sm text-red-600">Could not load invoices.</p>;
+    return <p className="alert alert-error">{i.error}</p>;
   }
 
   const invoices = data?.invoices ?? [];
 
   if (invoices.length === 0) {
-    return <p className="text-sm text-ink-500">No invoices yet.</p>;
+    return <p className="text-sm text-mute">{i.empty}</p>;
   }
 
   return (
-    <ul className="flex flex-col gap-2">
+    <ul className="grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-line-soft bg-line-soft">
       {invoices.map((invoice) => (
         <li
           key={invoice.id}
-          className="flex flex-col gap-1 rounded-xl border border-ink-100 bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
+          className="flex flex-col gap-2 bg-black/30 p-4 sm:flex-row sm:items-center sm:justify-between"
         >
           <div>
-            <p className="text-sm font-medium text-ink-900">
-              {invoice.number ?? `Invoice ${invoice.id.slice(-6)}`}
+            <p className="text-sm font-medium">
+              {invoice.number ?? `${i.invoice} ${invoice.id.slice(-6)}`}
             </p>
-            <p className="text-xs text-ink-500">
-              {invoice.created ? formatDate(invoice.created) : "—"} · {invoice.status ?? "paid"}
+            <p className="mt-1 text-xs text-mute-dim">
+              {invoice.created ? formatDate(invoice.created, dateLocale) : "—"} · {invoice.status ?? i.statusPaid}
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold text-ink-900">
-              {formatAmount(invoice.amount_due, invoice.currency)}
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium">
+              {formatAmount(invoice.amount_due, invoice.currency, locale)}
             </span>
             {invoice.hosted_invoice_url && (
               <a
                 href={invoice.hosted_invoice_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm font-medium text-brand-600 hover:underline"
+                className="rounded text-sm text-brand-500 transition-colors hover:text-brand-400"
               >
-                View
+                {i.view}
               </a>
             )}
           </div>

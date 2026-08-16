@@ -4,8 +4,14 @@ import { useState } from "react";
 import { ApiError, apiFetch } from "@/lib/api";
 
 export default function UpgradeToAnnualButton({
+  label,
+  loadingLabel,
+  errorMessage,
   onUpgrade,
 }: {
+  label: string;
+  loadingLabel: string;
+  errorMessage: string;
   onUpgrade?: () => void;
 }) {
   const [loading, setLoading] = useState(false);
@@ -24,7 +30,7 @@ export default function UpgradeToAnnualButton({
       onUpgrade?.();
       window.location.href = data.url;
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Failed to start upgrade.");
+      setError(err instanceof ApiError ? err.message : errorMessage);
       setLoading(false);
     }
   }
@@ -35,11 +41,11 @@ export default function UpgradeToAnnualButton({
         type="button"
         onClick={handleUpgrade}
         disabled={loading}
-        className="w-full rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 disabled:opacity-50 sm:w-fit"
+        className="btn btn-brand w-full justify-center py-2 text-xs disabled:opacity-50 sm:w-fit"
       >
-        {loading ? "Opening checkout..." : "Upgrade to annual"}
+        {loading ? loadingLabel : label}
       </button>
-      {error && <span className="text-xs text-red-600">{error}</span>}
+      {error && <span className="text-xs text-red-400">{error}</span>}
     </div>
   );
 }

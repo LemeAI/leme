@@ -52,8 +52,8 @@ O schema do banco é versionado via Alembic, dentro de `leme-app-backend/migrati
 >
 > Só para desenvolvimento: o disco do Cloud Run é efêmero e por instância,
 > então em produção os arquivos sumiriam a cada restart. Em produção use
-> `STORAGE_BACKEND=supabase` com `SUPABASE_URL` e
-> `SUPABASE_SERVICE_ROLE_KEY`.
+> `STORAGE_BACKEND=supabase` com `SUPABASE_URL`,
+> `SUPABASE_SERVICE_ROLE_KEY` e `SUPABASE_ANON_KEY`.
 
 1. Siga o [`leme-app-backend/README.md`](leme-app-backend/README.md) pra criar o virtualenv e instalar as dependências.
 2. Copie `leme-app-backend/.env.example` pra `leme-app-backend/.env` e preencha `DATABASE_URL`. Para **rodar as migrations** no Supabase, use a connection string de superuser (**Settings > Database > Connection string**, modo "URI") — criar roles e funções exige privilégio que a role da aplicação não tem. Num Postgres local, o usuário que você criou já é dono do banco.
@@ -126,6 +126,7 @@ Do Supabase (**Settings > API** e **Settings > Database**):
 
 - **Project URL** (`https://SEU-PROJETO.supabase.co`) → `SUPABASE_URL` (backend)
 - **service_role key** → `SUPABASE_SERVICE_ROLE_KEY` (backend, usada só pra falar com o Storage — ⚠️ nunca exponha essa chave no frontend)
+- **anon key** → `SUPABASE_ANON_KEY` (backend, usada só no header `apikey` das chamadas ao Storage)
 - **Connection string** (modo URI, com a senha do banco) → `DATABASE_URL` (backend)
 
 Do Firebase (**Project settings > General**): a config web da seção 3, passo 4.

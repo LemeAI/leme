@@ -12,7 +12,7 @@ create extension if not exists "pgcrypto";
 -- ============================================================================
 create table if not exists public.html_pages (
   id           uuid primary key default gen_random_uuid(),
-  user_id      uuid references auth.users (id) on delete set null,
+  user_id      text,
   title        text not null,
   description  text,
   file_path    text not null,
@@ -20,7 +20,8 @@ create table if not exists public.html_pages (
   created_at   timestamptz not null default now(),
   -- Plano free/pro: colunas abaixo controlam expiração e identidade anônima.
   expires_at   timestamptz,
-  anon_id      text
+  anon_id      text,
+  expires_at_before_pro timestamptz
 );
 
 -- Colunas adicionadas depois do lançamento inicial — "add column if not
@@ -42,14 +43,16 @@ comment on column public.html_pages.expires_at_before_pro is 'Backup do expires_
 -- Criado automaticamente via trigger quando um usuário se cadastra.
 -- ============================================================================
 create table if not exists public.profiles (
-  id                     uuid primary key references auth.users (id) on delete cascade,
+  id                     text primary key,
   plan                   text not null default 'free' check (plan in ('free', 'pro')),
   created_at             timestamptz not null default now(),
   -- Assinatura Stripe (plano Pro). Ver lib/stripe.ts e app/api/billing/**.
   stripe_customer_id     text,
   stripe_subscription_id text,
   stripe_price_id        text,
-  current_period_end     timestamptz
+  current_period_end     timestamptz,
+  cancel_at_period_end   boolean not null default false,
+  interval               text check (interval is null or interval in ('month', 'year'))
 );
 
 -- Colunas de billing adicionadas depois do lançamento inicial.
@@ -95,7 +98,7 @@ create table if not exists public.share_links (
   id          uuid primary key default gen_random_uuid(),
   page_id     uuid not null references public.html_pages (id) on delete cascade,
   token       text not null unique,
-  created_by  uuid references auth.users (id) on delete set null,
+  created_by  text,
   expires_at  timestamptz,
   created_at  timestamptz not null default now()
 );
@@ -109,7 +112,7 @@ comment on table public.share_links is 'Links de compartilhamento (token) para u
 create table if not exists public.contributions (
   id            uuid primary key default gen_random_uuid(),
   page_id       uuid not null references public.html_pages (id) on delete cascade,
-  user_id       uuid references auth.users (id) on delete set null,
+  user_id       text,
   author_name   text not null default 'Anonymous',
   content       text not null,
   type          text not null default 'comment'
@@ -156,7 +159,7 @@ $$;
 -- páginas que ele já tinha antes de virar Pro tinham um expires_at real —
 -- essas funções suspendem/restauram esse valor em vez de perdê-lo.
 -- ============================================================================
-create or replace function public.apply_pro_upgrade(target_user_id uuid)
+create or replace function public.apply_pro_upgrade(target_user_id text)
 returns void
 language plpgsql
 security definer
@@ -176,7 +179,7 @@ begin
 end;
 $$;
 
-create or replace function public.apply_pro_downgrade(target_user_id uuid, fallback_days integer)
+create or replace function public.apply_pro_downgrade(target_user_id text, fallback_days integer)
 returns void
 language plpgsql
 security definer
@@ -316,15 +319,18 @@ create policy "html_files_delete_any"
 
 -- ============================================================================
 -- A partir daqui, o schema é versionado via Alembic (backend/migrations),
--- não mais neste arquivo. O conteúdo acima corresponde exatamente à
--- revisão baseline backend/migrations/versions/0001_initial_schema.py —
--- se este arquivo já foi rodado manualmente no SQL Editor do Supabase,
--- rode `alembic stamp 0001_initial_schema` no backend em vez de
--- `alembic upgrade head` a partir do zero.
+-- não mais neste arquivo.
 --
--- A migração que substitui o Supabase Auth pelo Firebase Auth (colunas de
--- dono uuid -> text, remoção do trigger de signup, RLS desligado, role
--- leme_backend) está em
--- backend/migrations/versions/0002_firebase_auth_migration.py — rode
--- `alembic upgrade head` no backend para aplicá-la.
+-- Se este arquivo já foi rodado manualmente no SQL Editor do Supabase,
+-- rode `alembic stamp 0001_initial_schema` no backend e depois
+-- `alembic upgrade head` para aplicar as migrations seguintes.
+--
+-- Migrações relevantes:
+--   - 0002_firebase_auth_migration.py: troca Supabase Auth por Firebase Auth
+--     (colunas de dono uuid -> text, remove trigger de signup, desliga RLS,
+--     cria role leme_backend).
+--   - 0003_lock_down_storage_bucket.py: fecha acesso público de escrita no bucket.
+--   - 0004_add_subscription_details.py: adiciona campos de assinatura em profiles.
+--   - 615c26f17aec_fix_owner_columns_to_text.py: garante que share_links.created_by
+--     e contributions.user_id permanecem text após drift manual do schema.
 -- ============================================================================

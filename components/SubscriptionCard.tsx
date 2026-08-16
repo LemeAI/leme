@@ -4,30 +4,32 @@ import Link from "next/link";
 import { useSubscription } from "@/lib/hooks/useSubscription";
 import { useProfile } from "@/lib/hooks/useProfile";
 import { formatDate } from "@/lib/utils";
+import { getDateLocale } from "@/lib/i18n/date-locale";
 import CancelSubscriptionButton from "./CancelSubscriptionButton";
 import UpgradeToAnnualButton from "./UpgradeToAnnualButton";
 import ManageBillingButton from "./ManageBillingButton";
+import { useLocale } from "@/lib/i18n/use-locale";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
-export default function SubscriptionCard() {
+export default function SubscriptionCard({ dict }: { dict: Dictionary }) {
   const { data: profileData } = useProfile();
   const { data: subscription, loading, mutate } = useSubscription();
+  const locale = useLocale();
+  const dateLocale = getDateLocale(locale);
+  const b = dict.billing.subscription;
+  const a = dict.billing.actions;
 
   const profile = profileData?.profile;
   const plan = profile?.plan ?? "free";
 
   if (plan !== "pro") {
     return (
-      <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
-        <h2 className="text-lg font-bold text-ink-900">Subscription</h2>
-        <p className="mt-1 text-sm text-ink-500">
-          You are on the Free plan. Upgrade to Pro to keep pages live forever and remove the watermark.
-        </p>
-        <div className="mt-4">
-          <Link
-            href="/pricing"
-            className="inline-block rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600"
-          >
-            View plans
+      <div className="panel p-6">
+        <h2 className="subhead">{b.title}</h2>
+        <p className="mt-2 text-[15px] leading-relaxed text-mute">{b.freePlan}</p>
+        <div className="mt-5">
+          <Link href={`/${locale}/pricing`} className="btn btn-primary">
+            {b.viewPlans}
           </Link>
         </div>
       </div>
@@ -39,54 +41,70 @@ export default function SubscriptionCard() {
   const cancelAtPeriodEnd = subscription?.cancel_at_period_end ?? profile?.cancel_at_period_end ?? false;
 
   return (
-    <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card">
+    <div className="panel p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-lg font-bold text-ink-900">Pro plan</h2>
-          <p className="mt-1 text-sm text-ink-500">
-            Billed {isAnnual ? "annually" : "monthly"}
-          </p>
+          <h2 className="subhead">{b.proTitle}</h2>
+          <p className="mt-1.5 text-sm text-mute">{isAnnual ? b.billedAnnually : b.billedMonthly}</p>
         </div>
         <span
-          className={`rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wide ${
+          className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.1em] ${
             cancelAtPeriodEnd
-              ? "bg-amber-100 text-amber-700"
-              : "bg-emerald-100 text-emerald-700"
+              ? "bg-amber-500/10 text-amber-400"
+              : "bg-emerald-500/10 text-emerald-400"
           }`}
         >
-          {cancelAtPeriodEnd ? "Cancels soon" : "Active"}
+          {cancelAtPeriodEnd ? b.statusCancelsSoon : b.statusActive}
         </span>
       </div>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <div className="rounded-xl border border-ink-100 bg-ink-50 p-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-ink-500">Current period ends</p>
-          <p className="mt-1 text-sm font-semibold text-ink-900">
-            {currentPeriodEnd ? formatDate(currentPeriodEnd) : "—"}
+      <div className="mt-6 grid gap-px overflow-hidden rounded-lg border border-line-soft bg-line-soft sm:grid-cols-2">
+        <div className="bg-black/30 p-4">
+          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-mute-dim">
+            {b.currentPeriodEnds}
+          </p>
+          <p className="mt-1.5 text-sm font-medium">
+            {currentPeriodEnd ? formatDate(currentPeriodEnd, dateLocale) : "—"}
           </p>
         </div>
-        <div className="rounded-xl border border-ink-100 bg-ink-50 p-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-ink-500">Billing interval</p>
-          <p className="mt-1 text-sm font-semibold text-ink-900">
-            {isAnnual ? "Yearly" : "Monthly"}
+        <div className="bg-black/30 p-4">
+          <p className="text-[11px] font-medium uppercase tracking-[0.12em] text-mute-dim">
+            {b.billingInterval}
+          </p>
+          <p className="mt-1.5 text-sm font-medium">
+            {isAnnual ? b.intervalYearly : b.intervalMonthly}
           </p>
         </div>
       </div>
 
       {cancelAtPeriodEnd && (
-        <p className="mt-4 text-sm text-amber-700">
-          Your Pro plan is scheduled to cancel at the end of the current billing period.
-          You can resume it before then to keep the benefits.
-        </p>
+        <p className="alert alert-warning mt-5">{b.cancelWarning}</p>
       )}
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-        {!isAnnual && !cancelAtPeriodEnd && <UpgradeToAnnualButton onUpgrade={() => mutate()} />}
-        {!cancelAtPeriodEnd && <CancelSubscriptionButton onCancelled={() => mutate()} />}
-        <ManageBillingButton />
+        {!isAnnual && !cancelAtPeriodEnd && (
+          <UpgradeToAnnualButton
+            label={a.upgradeToAnnual}
+            loadingLabel={a.upgrading}
+            errorMessage={a.upgradeError}
+            onUpgrade={() => mutate()}
+          />
+        )}
+        {!cancelAtPeriodEnd && (
+          <CancelSubscriptionButton
+            label={a.cancelSubscription}
+            loadingLabel={a.cancelling}
+            confirmMessage={a.cancelConfirm}
+            confirmTitle={a.cancelConfirmTitle}
+            cancelLabel={a.cancelKeep}
+            errorMessage={a.cancelError}
+            onCancelled={() => mutate()}
+          />
+        )}
+        <ManageBillingButton label={a.manageBilling} loadingLabel={a.manageBillingLoading} />
       </div>
 
-      {loading && <p className="mt-4 text-xs text-ink-400">Syncing subscription details...</p>}
+      {loading && <p className="mt-5 text-xs text-mute-dim">{b.syncing}</p>}
     </div>
   );
 }

@@ -1,23 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import { GoogleAuthProvider, signInWithRedirect } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase";
-import { describeAuthError } from "@/lib/auth-errors";
+import { describeAuthError, isSilentAuthError } from "@/lib/auth-errors";
 
 // O Google não distingue "entrar" de "cadastrar": o mesmo fluxo cria a
 // conta na primeira vez e autentica nas seguintes. O backend também não
 // precisa saber de nada — o ID token vem no mesmo formato, com o mesmo uid,
 // independente do provedor (ver FirebaseTokenVerifier).
 //
-// Usamos signInWithRedirect em vez de signInWithPopup porque popups sofrem
-// com bloqueadores de popup e com políticas COOP (Cross-Origin-Opener-Policy)
-// em alguns navegadores/ambientes. O redirect redireciona o usuário para o
-// Google e volta para a mesma página, onde getRedirectResult finaliza o login.
+// Usamos signInWithPopup em vez de signInWithRedirect porque o fluxo de
+// redirect do Firebase Auth depende do domínio de auth servir __/firebase/init.json,
+// o que falha em alguns ambientes (especialmente após a migração para Firebase v11)
+// e deixa o usuário parado na tela de login. O popup é menos afetado por
+// bloqueadores e pelo 404.
 export default function GoogleSignInButton({
+  label,
+  loadingLabel,
+  locale,
   onError,
   disabled = false,
 }: {
+  label: string;
+  loadingLabel: string;
+  locale: string;
   onError: (message: string | null) => void;
   disabled?: boolean;
 }) {
@@ -28,9 +35,16 @@ export default function GoogleSignInButton({
     onError(null);
 
     try {
-      await signInWithRedirect(getFirebaseAuth(), new GoogleAuthProvider());
+      await signInWithPopup(getFirebaseAuth(), new GoogleAuthProvider());
+      // Em produção o onAuthStateChanged às vezes não dispara a tempo de
+      // redirecionar antes que o usuário interaja com a página. Forçamos um
+      // redirect full-page aqui; o provider também cuida disso via useAuth.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.href = `/${locale}/dashboard`;
     } catch (err) {
-      onError(describeAuthError(err));
+      if (!isSilentAuthError(err)) {
+        onError(describeAuthError(err));
+      }
       setLoading(false);
     }
   }
@@ -40,10 +54,10 @@ export default function GoogleSignInButton({
       type="button"
       onClick={handleClick}
       disabled={disabled || loading}
-      className="flex w-full items-center justify-center gap-3 rounded-full border border-ink-200 bg-white px-4 py-2.5 text-sm font-semibold text-ink-700 shadow-sm transition-colors hover:border-ink-300 hover:bg-ink-50 disabled:opacity-50"
+      className="btn btn-ghost w-full justify-center gap-3 bg-white/5 disabled:opacity-50"
     >
       <GoogleLogo />
-      {loading ? "Redirecting to Google..." : "Continue with Google"}
+      {loading ? loadingLabel : label}
     </button>
   );
 }
