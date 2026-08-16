@@ -1,0 +1,32 @@
+[project]
+name = "leme-backend"
+version = "1.0.0"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "D"]
+# B008: Depends()/File()/Form() in argument defaults is the required FastAPI
+# pattern, not a mutable-default bug.
+ignore = ["D100", "D104", "D105", "D107", "B008"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.per-file-ignores]
+# Alembic revisions: upgrade()/downgrade() are boilerplate entry points, and
+# embedded SQL reads better unwrapped than hard-wrapped at 110 columns.
+"migrations/versions/*.py" = ["D103", "E501"]
+# Inline HTML/CSS templates read better unwrapped than hard-wrapped.
+"app/domain/html_rendering.py" = ["E501"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

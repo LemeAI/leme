@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
+import { AuthProvider } from "@/lib/auth";
 import "./globals.css";
 
 // Poppins é a tipografia da identidade visual "Leme" (Regular/Medium/
@@ -28,7 +29,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={poppins.variable}>
-      <body className="min-h-screen bg-white text-ink-900 antialiased">{children}</body>
+      <body className="min-h-screen bg-white text-ink-900 antialiased">
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }

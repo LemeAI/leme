@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { ApiError, anonHeaders, apiFetch } from "@/lib/api";
 import type { Contribution, ContributionType } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
@@ -43,34 +44,28 @@ export default function ContributionsPanel({
     setError(null);
 
     const payload: Record<string, unknown> = {
-      pageId,
+      page_id: pageId,
       type,
-      authorName,
+      author_name: authorName,
       content,
     };
 
     if (type === "fork") {
-      payload.htmlContent = forkHtml;
+      payload.html_content = forkHtml;
       payload.title = forkTitle;
     }
 
     try {
-      const res = await fetch("/api/contribute", {
+      const contribution = await apiFetch<Contribution>("/contributions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: anonHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(payload),
       });
-      const data = await res.json();
 
-      if (!res.ok) {
-        setError(data.error ?? "Failed to submit contribution.");
-        return;
-      }
-
-      setContributions((prev) => [data.contribution, ...prev]);
+      setContributions((prev) => [contribution, ...prev]);
       setContent("");
-    } catch {
-      setError("Connection error while submitting contribution.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Connection error while submitting contribution.");
     } finally {
       setLoading(false);
     }

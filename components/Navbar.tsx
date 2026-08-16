@@ -1,12 +1,13 @@
+"use client";
+
 import Link from "next/link";
-import { createSupabaseServerClient } from "@/lib/supabase";
+import { signOut } from "firebase/auth";
+import { getFirebaseAuth } from "@/lib/firebase";
+import { useAuth } from "@/lib/auth";
 import Logo from "@/components/Logo";
 
-export default async function Navbar() {
-  const supabase = createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export default function Navbar() {
+  const { user, loading } = useAuth();
 
   return (
     <header className="sticky top-0 z-10 h-16 border-b border-ink-100 bg-white/80 backdrop-blur">
@@ -19,19 +20,18 @@ export default async function Navbar() {
           <Link href="/pricing" className="hidden text-ink-600 hover:text-ink-900 sm:inline">
             Plans
           </Link>
-          {user ? (
+          {loading ? null : user ? (
             <>
               <Link href="/dashboard" className="text-ink-600 hover:text-ink-900">
                 My files
               </Link>
-              <form action="/auth/signout" method="post">
-                <button
-                  type="submit"
-                  className="rounded-full border border-ink-200 px-4 py-1.5 font-medium text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50"
-                >
-                  Sign out
-                </button>
-              </form>
+              <button
+                type="button"
+                onClick={() => signOut(getFirebaseAuth())}
+                className="rounded-full border border-ink-200 px-4 py-1.5 font-medium text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50"
+              >
+                Sign out
+              </button>
             </>
           ) : (
             <Link

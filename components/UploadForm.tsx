@@ -2,6 +2,8 @@
 
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { ApiError, anonHeaders, apiFetch } from "@/lib/api";
+import type { UploadResponse } from "@/lib/types";
 
 const MAX_SIZE_BYTES = 2 * 1024 * 1024;
 
@@ -50,20 +52,17 @@ export default function UploadForm() {
     formData.append("description", description);
 
     try {
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error ?? "Failed to upload the file.");
-        setLoading(false);
-        return;
-      }
+      const data = await apiFetch<UploadResponse>("/uploads", {
+        method: "POST",
+        body: formData,
+        headers: anonHeaders(),
+      });
 
       // Redireciona direto para a página com o HTML renderizado —
       // sem tela intermediária de "sucesso".
       router.push(`/p/${data.page.id}`);
-    } catch {
-      setError("Connection error while uploading the file.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Connection error while uploading the file.");
       setLoading(false);
     }
   }

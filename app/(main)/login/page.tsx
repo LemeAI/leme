@@ -2,14 +2,19 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowserClient } from "@/lib/supabase-browser";
+import {
+  createUserWithEmailAndPassword,
+  sendSignInLinkToEmail,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import { getFirebaseAuth } from "@/lib/firebase";
+import { EMAIL_LINK_STORAGE_KEY } from "@/lib/auth";
 
 type Mode = "magic-link" | "password";
 type PasswordAction = "sign-in" | "sign-up";
 
 export default function LoginPage() {
   const router = useRouter();
-  const supabase = createSupabaseBrowserClient();
 
   const [mode, setMode] = useState<Mode>("magic-link");
   const [passwordAction, setPasswordAction] = useState<PasswordAction>("sign-in");
@@ -26,21 +31,14 @@ export default function LoginPage() {
     setMessage(null);
 
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
+      await sendSignInLinkToEmail(getFirebaseAuth(), email, {
+        url: `${window.location.origin}/auth/callback`,
+        handleCodeInApp: true,
       });
-
-      if (error) {
-        setError(error.message);
-        return;
-      }
-
+      window.localStorage.setItem(EMAIL_LINK_STORAGE_KEY, email);
       setMessage("Magic link sent! Check your inbox to continue.");
-    } catch {
-      setError("Couldn't connect. Check your internet connection and try again.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't send the magic link.");
     } finally {
       setLoading(false);
     }
@@ -54,34 +52,13 @@ export default function LoginPage() {
 
     try {
       if (passwordAction === "sign-up") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
-          },
-        });
-
-        if (error) {
-          setError(error.message);
-          return;
-        }
-
-        setMessage("Account created! Confirm your email to sign in.");
-        return;
+        await createUserWithEmailAndPassword(getFirebaseAuth(), email, password);
+      } else {
+        await signInWithEmailAndPassword(getFirebaseAuth(), email, password);
       }
-
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-      if (error) {
-        setError(error.message);
-        return;
-      }
-
       router.push("/dashboard");
-      router.refresh();
-    } catch {
-      setError("Couldn't connect. Check your internet connection and try again.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't connect. Try again.");
     } finally {
       setLoading(false);
     }

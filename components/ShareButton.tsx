@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import CopyLink from "@/components/CopyLink";
+import { ApiError, apiFetch } from "@/lib/api";
+import type { ShareResponse } from "@/lib/types";
 
 export default function ShareButton({
   pageId,
@@ -19,23 +21,17 @@ export default function ShareButton({
     setError(null);
 
     try {
-      // A rota já devolve o link existente se a página tiver um — nunca
+      // O endpoint já devolve o link existente se a página tiver um — nunca
       // cria um segundo link pra mesma página.
-      const res = await fetch("/api/share", {
+      const data = await apiFetch<ShareResponse>("/share-links", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pageId }),
+        body: JSON.stringify({ page_id: pageId }),
       });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error ?? "Failed to generate link.");
-        return;
-      }
 
       setUrl(data.url);
-    } catch {
-      setError("Connection error while generating the link.");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Connection error while generating the link.");
     } finally {
       setLoading(false);
     }

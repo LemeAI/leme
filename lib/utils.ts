@@ -12,11 +12,6 @@ export function getSiteUrl(): string {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 }
 
-export function getPublicFileUrl(filePath: string): string {
-  const base = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  return `${base}/storage/v1/object/public/html-files/${filePath}`;
-}
-
 /** Texto curto de expiração pra mostrar no dashboard (null = plano sem expiração). */
 export function formatExpiration(expiresAt: string | null): string | null {
   if (!expiresAt) return null;

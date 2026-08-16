@@ -1,58 +1,35 @@
+"use client";
+
+import { useEffect } from "react";
 import Link from "next/link";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase";
-import { formatDate, formatExpiration, getSiteUrl } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { formatDate, formatExpiration } from "@/lib/utils";
 import { getPlanLimits, isExpired } from "@/lib/plans";
-import { ANON_COOKIE_NAME } from "@/lib/anon";
+import { useAuth } from "@/lib/auth";
+import { useMyPages } from "@/lib/hooks/useMyPages";
 import ShareButton from "@/components/ShareButton";
-import type { HtmlPage, ShareLink } from "@/lib/types";
 
 // Uploads feitos sem conta não aparecem em lugar nenhum a não ser que a
-// gente lembre deles pelo navegador: guardamos um cookie técnico
-// (ai_html_anon_id, ver lib/anon.ts) em cada upload anônimo e usamos ele
-// aqui pra listar só as páginas enviadas *neste* navegador.
-export default async function MinePage() {
-  const supabase = createSupabaseServerClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  // Quem já tem conta usa o /dashboard normal (que puxa do banco por user_id).
-  if (user) {
-    redirect("/dashboard");
-  }
-
-  const anonId = cookies().get(ANON_COOKIE_NAME)?.value ?? null;
+// gente lembre deles pelo navegador: usamos um identificador técnico
+// (X-Anon-Id, ver lib/anon-client.ts) em cada upload anônimo e usamos ele
+// aqui pra listar só as páginas enviadas *deste* navegador.
+export default function MinePage() {
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+  const { pages, loading: pagesLoading } = useMyPages();
   const limits = getPlanLimits("anonymous");
 
-  const { data: pages } = anonId
-    ? await supabase
-        .from("html_pages")
-        .select("*")
-        .eq("anon_id", anonId)
-        .order("created_at", { ascending: false })
-    : { data: [] as HtmlPage[] };
-
-  const activePagesCount = (pages ?? []).filter((p: HtmlPage) => !isExpired(p.expires_at)).length;
-
-  const pageIds = (pages ?? []).map((p: HtmlPage) => p.id);
-
-  const { data: shareLinks } = pageIds.length
-    ? await supabase
-        .from("share_links")
-        .select("*")
-        .in("page_id", pageIds)
-        .order("created_at", { ascending: false })
-    : { data: [] as ShareLink[] };
-
-  const latestShareByPage = new Map<string, string>();
-  for (const link of shareLinks ?? []) {
-    if (!latestShareByPage.has(link.page_id)) {
-      latestShareByPage.set(link.page_id, `${getSiteUrl()}/s/${link.token}`);
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace("/dashboard");
     }
+  }, [authLoading, user, router]);
+
+  if (authLoading || user) {
+    return null;
   }
+
+  const activePagesCount = pages.filter((page) => !isExpired(page.expires_at)).length;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
@@ -83,7 +60,7 @@ export default async function MinePage() {
         </Link>
       </div>
 
-      {!anonId || !pages || pages.length === 0 ? (
+      {pagesLoading ? null : pages.length === 0 ? (
         <p className="text-sm text-ink-500">
           No uploads saved in this browser yet.{" "}
           <Link href="/" className="font-medium text-brand-600 hover:underline">
@@ -94,15 +71,15 @@ export default async function MinePage() {
       ) : (
         <>
           <p className="mb-4 text-xs text-ink-400">
-            This list is saved in this browser&apos;s cookie — if you clear the
-            site&apos;s data or switch devices, it&apos;s gone.{" "}
+            This list is saved in this browser — if you clear the site&apos;s data or switch
+            devices, it&apos;s gone.{" "}
             <Link href="/login" className="text-brand-600 hover:underline">
               Create an account
             </Link>{" "}
             so you don&apos;t lose your uploads.
           </p>
           <ul className="flex flex-col gap-3">
-            {pages.map((page: HtmlPage) => {
+            {pages.map((page) => {
               const expirationLabel = formatExpiration(page.expires_at);
               const expired = isExpired(page.expires_at);
 
@@ -119,9 +96,7 @@ export default async function MinePage() {
                       {page.title}
                     </Link>
                     {page.description && (
-                      <p className="mt-0.5 truncate text-sm text-ink-500">
-                        {page.description}
-                      </p>
+                      <p className="mt-0.5 truncate text-sm text-ink-500">{page.description}</p>
                     )}
                     <p className="mt-1 flex flex-wrap items-center gap-x-2 text-xs text-ink-400">
                       <span>
@@ -139,7 +114,7 @@ export default async function MinePage() {
                     </p>
                   </div>
 
-                  <ShareButton pageId={page.id} initialUrl={latestShareByPage.get(page.id)} />
+                  <ShareButton pageId={page.id} />
                 </li>
               );
             })}
