@@ -1,6 +1,6 @@
 # Integração Frontend ↔ Backend
 
-Este documento descreve como o frontend Next.js (`leme/`) se comunica com o backend FastAPI (`leme-app-backend/`).
+Este documento descreve como o frontend Next.js (`leme/`) se comunica com o backend FastAPI (`leme-app-backend/`), que roda como Serverless Function na Vercel.
 
 ## Camada de API
 
@@ -24,7 +24,7 @@ Os hooks `useMyPages` e `useProfile` usam `swr` para:
 
 | Variável | Obrigatória | Descrição |
 |----------|-------------|-----------|
-| `NEXT_PUBLIC_API_URL` | Sim | URL pública do backend (ex: `https://api.leme.app`). Build falha em produção se estiver faltando ou apontar para `localhost`. |
+| `NEXT_PUBLIC_API_URL` | Sim | URL pública do backend na Vercel (ex: `https://leme-api.vercel.app`). Build falha em produção se estiver faltando ou apontar para `localhost`. |
 | `NEXT_PUBLIC_SITE_URL` | Sim | URL pública do frontend (usada pelo backend para montar links de compartilhamento). |
 | `NEXT_PUBLIC_FIREBASE_*` | Sim | Configuração pública do Firebase Auth. |
 
@@ -41,3 +41,4 @@ O backend aplica rate-limit por IP para usuários anônimos e por `user_id` para
 ## Checklist de Deploy
 
 Ver `DEPLOY_CHECKLIST.md`.
+

@@ -14,10 +14,50 @@ const poppins = Poppins({
   display: "swap",
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.leme-app.com";
+const SITE_NAME = "Leme";
+const DEFAULT_DESCRIPTION =
+  "Upload AI-generated HTML files and share them with anyone through a link. Collaborate with comments, suggestions, and forks.";
+
 export const metadata: Metadata = {
-  title: "Leme",
-  description:
-    "Upload AI-generated HTML files and share them with anyone through a link.",
+  title: {
+    default: SITE_NAME,
+    template: "%s | Leme",
+  },
+  description: DEFAULT_DESCRIPTION,
+  metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    description: DEFAULT_DESCRIPTION,
+    images: [`${SITE_URL}/opengraph-image`],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_NAME,
+    description: DEFAULT_DESCRIPTION,
+    images: [`${SITE_URL}/opengraph-image`],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 // Layout raiz: propositalmente sem Navbar. As páginas de visualização

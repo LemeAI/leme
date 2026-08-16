@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   createUserWithEmailAndPassword,
+  getRedirectResult,
   sendSignInLinkToEmail,
   signInWithEmailAndPassword,
 } from "firebase/auth";
@@ -25,6 +26,22 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Finaliza o login com Google quando o usuário volta do redirect do Firebase.
+  useEffect(() => {
+    async function completeRedirect() {
+      try {
+        const result = await getRedirectResult(getFirebaseAuth());
+        if (result?.user) {
+          router.replace("/dashboard");
+        }
+      } catch (err) {
+        setError(describeAuthError(err));
+      }
+    }
+
+    void completeRedirect();
+  }, [router]);
 
   async function handleMagicLink(e: FormEvent) {
     e.preventDefault();

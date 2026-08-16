@@ -5,12 +5,12 @@ if (process.env.VERCEL_ENV === "production") {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   if (!apiUrl) {
     throw new Error(
-      "NEXT_PUBLIC_API_URL is required in production. Set it to the public URL of the Leme backend (e.g. https://api.leme.app).",
+      "NEXT_PUBLIC_API_URL is required for the Vercel production build. Set it to the public URL of the Leme backend (e.g. https://leme-api.vercel.app).",
     );
   }
   if (apiUrl.includes("localhost") || apiUrl.includes("127.0.0.1")) {
     throw new Error(
-      `NEXT_PUBLIC_API_URL cannot point to localhost in production. Current value: ${apiUrl}`,
+      `NEXT_PUBLIC_API_URL cannot point to localhost in the Vercel production build. Current value: ${apiUrl}`,
     );
   }
 }
