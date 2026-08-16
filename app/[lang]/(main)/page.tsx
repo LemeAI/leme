@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LogoMark } from "@/components/Logo";
+import {
+  CollaborateIcon,
+  ControlsIcon,
+  ShareLinkIcon,
+  UploadIcon,
+} from "@/components/FeatureIcons";
 import { type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 
@@ -67,10 +72,18 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   ];
 
   const features = [
-    { title: dict.home.featureUpload, description: dict.home.featureUploadDesc },
-    { title: dict.home.featureShare, description: dict.home.featureShareDesc },
-    { title: dict.home.featureCollaborate, description: dict.home.featureCollaborateDesc },
-    { title: dict.home.featureControl, description: dict.home.featureControlDesc },
+    { title: dict.home.featureUpload, description: dict.home.featureUploadDesc, Icon: UploadIcon },
+    { title: dict.home.featureShare, description: dict.home.featureShareDesc, Icon: ShareLinkIcon },
+    {
+      title: dict.home.featureCollaborate,
+      description: dict.home.featureCollaborateDesc,
+      Icon: CollaborateIcon,
+    },
+    {
+      title: dict.home.featureControl,
+      description: dict.home.featureControlDesc,
+      Icon: ControlsIcon,
+    },
   ];
 
   const steps = [
@@ -116,7 +129,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
               <li key={tool.name}>
                 <Link
                   href={tool.href}
-                  className="rounded-md text-sm tracking-[-0.01em] text-mute transition-colors hover:text-white"
+                  className="link-nav rounded-md text-sm tracking-[-0.01em]"
                 >
                   {tool.name}
                 </Link>
@@ -138,11 +151,11 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
         {/* Divisores em vez de cartões: as quatro capacidades são paralelas,
             não uma sequência — por isso não recebem numeração. */}
         <div className="grid grid-cols-1 gap-px border-y border-line-soft bg-line-soft sm:grid-cols-2 lg:grid-cols-4">
-          {features.map((feature) => (
-            <div key={feature.title} className="bg-black px-7 py-9">
-              <LogoMark className="h-5 w-5 text-brand-500" />
-              <h3 className="subhead mt-6">{feature.title}</h3>
-              <p className="mt-2.5 text-[15px] text-mute">{feature.description}</p>
+          {features.map(({ title, description, Icon }) => (
+            <div key={title} className="bg-black px-7 py-9">
+              <Icon className="h-6 w-6 text-brand-500" />
+              <h3 className="subhead mt-6">{title}</h3>
+              <p className="mt-2.5 text-[15px] text-mute">{description}</p>
             </div>
           ))}
         </div>

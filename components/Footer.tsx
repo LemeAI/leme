@@ -36,22 +36,22 @@ export default function Footer({ dict, locale }: { dict: Dictionary; locale: Loc
             <h3 className="text-xs font-medium uppercase tracking-[0.14em] text-mute-dim">{dict.footer.product}</h3>
             <ul className="mt-4 space-y-2.5 text-sm text-mute">
               <li>
-                <Link href={`/${locale}/features`} className="transition-colors hover:text-white">
+                <Link href={`/${locale}/features`} className="link-nav">
                   {dict.footer.features}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/pricing`} className="transition-colors hover:text-white">
+                <Link href={`/${locale}/pricing`} className="link-nav">
                   {dict.footer.pricing}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/use-cases`} className="transition-colors hover:text-white">
+                <Link href={`/${locale}/use-cases`} className="link-nav">
                   {dict.footer.useCases}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/about`} className="transition-colors hover:text-white">
+                <Link href={`/${locale}/about`} className="link-nav">
                   {dict.footer.about}
                 </Link>
               </li>
@@ -62,27 +62,27 @@ export default function Footer({ dict, locale }: { dict: Dictionary; locale: Loc
             <h3 className="text-xs font-medium uppercase tracking-[0.14em] text-mute-dim">{dict.footer.resources}</h3>
             <ul className="mt-4 space-y-2.5 text-sm text-mute">
               <li>
-                <Link href={`/${locale}/blog`} className="transition-colors hover:text-white">
+                <Link href={`/${locale}/blog`} className="link-nav">
                   {dict.footer.blog}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/faq`} className="transition-colors hover:text-white">
+                <Link href={`/${locale}/faq`} className="link-nav">
                   {dict.footer.faq}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/terms`} className="transition-colors hover:text-white">
+                <Link href={`/${locale}/terms`} className="link-nav">
                   {dict.footer.terms}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/privacy`} className="transition-colors hover:text-white">
+                <Link href={`/${locale}/privacy`} className="link-nav">
                   {dict.footer.privacy}
                 </Link>
               </li>
               <li>
-                <a href="mailto:hello@leme-app.com" className="transition-colors hover:text-white">
+                <a href="mailto:hello@leme-app.com" className="link-nav">
                   {dict.footer.contact}
                 </a>
               </li>
@@ -97,7 +97,7 @@ export default function Footer({ dict, locale }: { dict: Dictionary; locale: Loc
                   href="https://twitter.com/lemeapp"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="transition-colors hover:text-white"
+                  className="link-nav"
                 >
                   Twitter / X
                 </a>
@@ -107,7 +107,7 @@ export default function Footer({ dict, locale }: { dict: Dictionary; locale: Loc
                   href="https://www.linkedin.com/company/leme-app"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="transition-colors hover:text-white"
+                  className="link-nav"
                 >
                   LinkedIn
                 </a>
@@ -117,7 +117,7 @@ export default function Footer({ dict, locale }: { dict: Dictionary; locale: Loc
                   href="https://github.com/leme-app"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="transition-colors hover:text-white"
+                  className="link-nav"
                 >
                   GitHub
                 </a>

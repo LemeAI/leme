@@ -63,7 +63,7 @@ export default function LanguageSwitch({ currentLocale }: { currentLocale: Local
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium tracking-[0.08em] text-mute transition-colors hover:text-white"
+        className="link-nav inline-flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium tracking-[0.08em]"
         aria-label="Switch language"
         aria-expanded={open}
         aria-haspopup="menu"

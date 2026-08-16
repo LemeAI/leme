@@ -63,6 +63,14 @@ body {
       theme("colors.surface.DEFAULT");
   }
 
+  /* Link de navegação. Acende no laranja da marca sob o cursor — os
+     controles que só trocam estado (abas, toggles) continuam indo para o
+     branco, para que a cor de marca signifique sempre "isto leva a algum
+     lugar". */
+  .link-nav {
+    @apply text-mute transition-colors hover:text-brand-500;
+  }
+
   /* Rótulo de seção. O ponto laranja é o único uso decorativo da cor de
      marca — em todo o resto ela carrega ação ou sequência. */
   .eyebrow {

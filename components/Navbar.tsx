@@ -22,13 +22,13 @@ export default function Navbar({ dict, locale }: { dict: Dictionary; locale: Loc
         <div className="flex items-center gap-1 text-sm sm:gap-2">
           <Link
             href={`/${locale}/pricing`}
-            className="hidden rounded-md px-2 py-1.5 text-mute transition-colors hover:text-white sm:inline"
+            className="link-nav hidden rounded-md px-2 py-1.5 sm:inline"
           >
             {dict.nav.plans}
           </Link>
           <Link
             href={`/${locale}/blog`}
-            className="hidden rounded-md px-2 py-1.5 text-mute transition-colors hover:text-white sm:inline"
+            className="link-nav hidden rounded-md px-2 py-1.5 sm:inline"
           >
             {dict.nav.blog}
           </Link>
@@ -37,7 +37,7 @@ export default function Navbar({ dict, locale }: { dict: Dictionary; locale: Loc
             <>
               <Link
                 href={`/${locale}/dashboard`}
-                className="rounded-md px-2 py-1.5 text-mute transition-colors hover:text-white"
+                className="link-nav rounded-md px-2 py-1.5"
               >
                 {dict.nav.myFiles}
               </Link>
