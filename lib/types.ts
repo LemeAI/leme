@@ -108,3 +108,12 @@ export interface MeResponse {
   active_pages_count: number;
   max_active_pages: number | null;
 }
+
+export interface PageMemoryRead {
+  memory: Record<string, string | null>;
+}
+
+export interface PageMemoryUpdateRequest {
+  author_name?: string;
+  updates: Record<string, string | null>;
+}

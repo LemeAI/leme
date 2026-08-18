@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ShareButton from "@/components/ShareButton";
 import UploadsMenu from "@/components/UploadsMenu";
 import PlanUpsellCard from "@/components/PlanUpsellCard";
+import PageMemoryPanel from "@/components/PageMemoryPanel";
 import PageSettingsPanel from "@/components/PageSettingsPanel";
 import { useAuth } from "@/lib/auth";
 import { useMyPages } from "@/lib/hooks/useMyPages";
@@ -69,6 +70,8 @@ export default function PageSidebar({
             onChange={() => refresh()}
           />
         )}
+
+        {ownsPage && <PageMemoryPanel pageId={currentPageId} dict={dict} />}
 
         <PlanUpsellCard plan={effectivePlan} activePagesCount={availablePages.length} locale={locale} dict={dict} />
       </div>

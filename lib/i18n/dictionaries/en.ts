@@ -1005,6 +1005,19 @@ export const en = {
     saving: "Saving...",
     error: "Could not save the settings.",
   },
+  pageMemory: {
+    title: "Shared memory",
+    loading: "Loading shared memory...",
+    error: "Could not load shared memory.",
+    empty: "No data stored yet. Open this page and edit a field to see it here.",
+    filterPlaceholder: "Filter keys or values...",
+    exportCsv: "Export CSV",
+  },
+  newMemoryAlert: {
+    message: "New data has been added to this page.",
+    reload: "Reload",
+    dismiss: "Dismiss",
+  },
   authErrors: {
     invalidEmail: "That email address doesn't look valid.",
     userDisabled: "This account has been disabled.",

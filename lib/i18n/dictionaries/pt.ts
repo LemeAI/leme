@@ -997,6 +997,19 @@ export const pt: Dictionary = {
     untitledPage: "Página compartilhada",
     viewPageDescription: "Veja {title} no Leme.",
   },
+  pageMemory: {
+    title: "Memória compartilhada",
+    loading: "Carregando memória compartilhada...",
+    error: "Não foi possível carregar a memória compartilhada.",
+    empty: "Nenhum dado salvo ainda. Abra esta página e edite um campo para vê-lo aqui.",
+    filterPlaceholder: "Filtrar chaves ou valores...",
+    exportCsv: "Exportar CSV",
+  },
+  newMemoryAlert: {
+    message: "Novos dados foram adicionados a esta página.",
+    reload: "Recarregar",
+    dismiss: "Ignorar",
+  },
   pageSettings: {
     title: "Configurações da página",
     proOnly: "Pro",

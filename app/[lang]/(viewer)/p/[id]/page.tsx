@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import HtmlViewer from "@/components/HtmlViewer";
 import Navbar from "@/components/Navbar";
 import ExpiredNotice from "@/components/ExpiredNotice";
+import NewMemoryAlert from "@/components/NewMemoryAlert";
 import PageSidebar from "@/components/PageSidebar";
 import CollapsibleSidebar from "@/components/CollapsibleSidebar";
 import { apiUrl, getPageContentUrl } from "@/lib/api-url";
@@ -107,6 +108,7 @@ export default async function PublicPage({
           <PageSidebar currentPageId={page.id} locale={locale} dict={dict} />
         </CollapsibleSidebar>
       </div>
+      <NewMemoryAlert pageId={page.id} dict={dict} />
     </>
   );
 }

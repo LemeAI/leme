@@ -997,6 +997,19 @@ export const es: Dictionary = {
     untitledPage: "Página compartida",
     viewPageDescription: "Mira {title} en Leme.",
   },
+  pageMemory: {
+    title: "Shared memory",
+    loading: "Loading shared memory...",
+    error: "Could not load shared memory.",
+    empty: "No data stored yet. Open this page and edit a field to see it here.",
+    filterPlaceholder: "Filter keys or values...",
+    exportCsv: "Export CSV",
+  },
+  newMemoryAlert: {
+    message: "New data has been added to this page.",
+    reload: "Reload",
+    dismiss: "Dismiss",
+  },
   pageSettings: {
     title: "Ajustes de la página",
     proOnly: "Pro",
