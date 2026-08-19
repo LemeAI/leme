@@ -187,13 +187,7 @@ export default function ForkEditorModal({
       const { outerHTML } = event.data as { outerHTML?: string };
       if (!outerHTML || !selectText) return;
 
-      const clean = outerHTML.replace(/\s+/g, " ").trim();
-      if (clean.length > 200) {
-        const start = clean.slice(0, 100);
-        selectText(start);
-        return;
-      }
-      selectText(clean);
+      selectText(outerHTML);
     }
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);

@@ -122,11 +122,58 @@ export function useCodeMirror({ initialValue = "", onChange }: UseCodeMirrorOpti
     if (!view) return false;
     const doc = view.state.doc;
     const text = doc.toString();
-    const index = text.indexOf(search);
+
+    const normalizedSearch = search.replace(/\s+/g, " ").trim();
+    const normalizedText = text.replace(/\s+/g, " ").trim();
+
+    let index = text.indexOf(search);
+    let length = search.length;
+
+    if (index === -1 && normalizedSearch) {
+      const normalizedIndex = normalizedText.indexOf(normalizedSearch);
+      if (normalizedIndex !== -1) {
+        let originalIndex = 0;
+        let seenNonWhitespace = 0;
+        while (originalIndex < text.length && seenNonWhitespace < normalizedIndex) {
+          if (!/\s/.test(text[originalIndex])) {
+            seenNonWhitespace++;
+          }
+          originalIndex++;
+        }
+        index = originalIndex;
+        length = 0;
+        let seen = 0;
+        while (originalIndex < text.length && seen < normalizedSearch.length) {
+          if (!/\s/.test(text[originalIndex])) {
+            seen++;
+          }
+          length++;
+          originalIndex++;
+        }
+      }
+    }
+
+    if (index === -1) {
+      const openTagMatch = search.match(/<[^>]+>/);
+      if (openTagMatch) {
+        const openTag = openTagMatch[0];
+        index = text.indexOf(openTag);
+        length = openTag.length;
+      }
+    }
+
+    if (index === -1 && normalizedSearch.length > 0) {
+      const prefix = normalizedSearch.slice(0, 80).split("").filter((c) => !/\s/.test(c)).join("");
+      if (prefix) {
+        index = text.indexOf(prefix);
+        length = prefix.length;
+      }
+    }
+
     if (index === -1) return false;
 
     view.dispatch({
-      selection: { anchor: index, head: index + search.length },
+      selection: { anchor: index, head: index + length },
       effects: EditorView.scrollIntoView(index, { y: "center" }),
     });
     view.focus();
