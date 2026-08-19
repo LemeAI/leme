@@ -133,3 +133,66 @@ export interface PageMemoryUpdateRequest {
   author_name?: string;
   updates: Record<string, string | null>;
 }
+
+export type TemplateCategory = "pm_po" | "service_provider" | "forms" | "other";
+
+export interface Template {
+  id: string;
+  source_page_id: string | null;
+  owner_user_id: string;
+  title: string;
+  description: string | null;
+  category: TemplateCategory;
+  tags: string[];
+  file_path: string;
+  icon_type: ForkIconType | null;
+  icon_value: string | null;
+  icon_color: string | null;
+  is_official: boolean;
+  is_published: boolean;
+  clones_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TemplateListResponse {
+  items: Template[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface TemplateCreateRequest {
+  source_page_id: string;
+  title: string;
+  description?: string;
+  category: TemplateCategory;
+  tags?: string[];
+  icon_type?: ForkIconType;
+  icon_value?: string;
+  icon_color?: string;
+  is_official?: boolean;
+}
+
+export interface TemplateUpdateRequest {
+  title?: string;
+  description?: string;
+  category?: TemplateCategory;
+  tags?: string[];
+  icon_type?: ForkIconType;
+  icon_value?: string;
+  icon_color?: string;
+  is_published?: boolean;
+}
+
+export interface TemplateCloneResponse {
+  page: HtmlPage;
+}
+
+export interface TemplateFilters {
+  category?: TemplateCategory;
+  tag?: string;
+  search?: string;
+  is_official?: boolean;
+  offset?: number;
+}

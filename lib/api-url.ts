@@ -22,3 +22,8 @@ export function getPageContentUrl(pageId: string): string {
 export function getPageSourceUrl(pageId: string): string {
   return apiUrl(`/pages/${pageId}/content?decorate=false`);
 }
+
+/** Public URL that serves a template's raw HTML for preview iframes. */
+export function getTemplateContentUrl(templateId: string): string {
+  return apiUrl(`/templates/${templateId}/content`);
+}
