@@ -5,7 +5,8 @@ import Link from "next/link";
 import { ApiError, anonHeaders, apiFetch } from "@/lib/api";
 import { useLocale } from "@/lib/i18n/use-locale";
 import { formatTemplate } from "@/lib/i18n/format-template";
-import type { Contribution, ContributionType } from "@/lib/types";
+import ForkEditorModal from "@/components/ForkEditorModal";
+import type { Contribution, ContributionType, ForkIconChoice } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
@@ -37,20 +38,33 @@ export default function ContributionsPanel({
   const [contributions, setContributions] = useState(initialContributions);
   const locale = useLocale();
   const d = dict.contributions;
+  const de = dict.forkEditor;
   const [type, setType] = useState<ContributionType>("comment");
   const [authorName, setAuthorName] = useState("");
   const [content, setContent] = useState("");
   const [forkTitle, setForkTitle] = useState(
     formatTemplate(dict.contributions.forkOf, { title: pageTitle }),
   );
-  const [forkHtml, setForkHtml] = useState(pageHtml);
+  const [forkHtml] = useState(pageHtml);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [editorKey, setEditorKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const typeLabel = (key: keyof Dictionary["contributions"]) => d[key] as string;
 
+  function openEditor() {
+    setEditorKey((k) => k + 1);
+    setIsEditorOpen(true);
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    if (type === "fork") {
+      openEditor();
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -61,10 +75,49 @@ export default function ContributionsPanel({
       content,
     };
 
-    if (type === "fork") {
-      payload.html_content = forkHtml;
-      payload.title = forkTitle;
+    try {
+      const contribution = await apiFetch<Contribution>("/contributions", {
+        method: "POST",
+        headers: anonHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(payload),
+      });
+
+      setContributions((prev) => [contribution, ...prev]);
+      setContent("");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : d.error);
+    } finally {
+      setLoading(false);
     }
+  }
+
+  async function handleCreateFork({
+    title,
+    html,
+    message,
+    authorName: forkAuthorName,
+    icon,
+  }: {
+    title: string;
+    html: string;
+    message: string;
+    authorName: string;
+    icon: ForkIconChoice;
+  }) {
+    setLoading(true);
+    setError(null);
+
+    const payload: Record<string, unknown> = {
+      page_id: pageId,
+      type: "fork",
+      author_name: forkAuthorName || authorName,
+      content: message,
+      html_content: html,
+      title,
+      icon_type: icon.type,
+      icon_value: icon.value,
+      icon_color: icon.color,
+    };
 
     try {
       const contribution = await apiFetch<Contribution>("/contributions", {
@@ -75,6 +128,7 @@ export default function ContributionsPanel({
 
       setContributions((prev) => [contribution, ...prev]);
       setContent("");
+      setIsEditorOpen(false);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : d.error);
     } finally {
@@ -112,24 +166,13 @@ export default function ContributionsPanel({
         />
 
         {type === "fork" && (
-          <>
-            <input
-              type="text"
-              value={forkTitle}
-              onChange={(e) => setForkTitle(e.target.value)}
-              placeholder={d.forkTitlePlaceholder}
-              className="field-input mt-0"
-            />
-            <label className="flex flex-col gap-1 text-xs font-medium text-mute">
-              {d.forkHtmlLabel}
-              <textarea
-                value={forkHtml}
-                onChange={(e) => setForkHtml(e.target.value)}
-                rows={8}
-                className="field-input font-mono text-xs"
-              />
-            </label>
-          </>
+          <button
+            type="button"
+            onClick={openEditor}
+            className="btn btn-brand w-fit"
+          >
+            {de.openEditor}
+          </button>
         )}
 
         <textarea
@@ -157,7 +200,7 @@ export default function ContributionsPanel({
           {loading
             ? d.submitting
             : type === "fork"
-            ? d.createFork
+            ? de.openEditor
             : d.submit}
         </button>
       </form>
@@ -190,6 +233,20 @@ export default function ContributionsPanel({
           </li>
         ))}
       </ul>
+
+      <ForkEditorModal
+        key={editorKey}
+        isOpen={isEditorOpen}
+        onClose={() => setIsEditorOpen(false)}
+        initialHtml={forkHtml}
+        initialTitle={forkTitle}
+        pageTitle={pageTitle}
+        authorName={authorName}
+        forkMessage={content}
+        dict={dict}
+        onCreateFork={handleCreateFork}
+        loading={loading}
+      />
     </div>
   );
 }

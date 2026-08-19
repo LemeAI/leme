@@ -3,6 +3,14 @@
 
 export type ContributionType = "comment" | "suggestion" | "fork";
 
+export type ForkIconType = "emoji" | "text";
+
+export interface ForkIconChoice {
+  type: ForkIconType;
+  value: string;
+  color?: string;
+}
+
 export type HtmlPage = {
   id: string;
   user_id: string | null;
@@ -16,6 +24,9 @@ export type HtmlPage = {
   expires_at_before_pro: string | null;
   allow_contributions: boolean;
   hide_branding: boolean;
+  icon_type: ForkIconType | null;
+  icon_value: string | null;
+  icon_color: string | null;
 };
 
 export type BillingInterval = "month" | "year";
@@ -74,6 +85,9 @@ export type Contribution = {
   type: ContributionType;
   fork_page_id: string | null;
   created_at: string;
+  icon_type?: ForkIconType | null;
+  icon_value?: string | null;
+  icon_color?: string | null;
 };
 
 // -- Tipos das respostas da API do backend (FastAPI/Pydantic, snake_case) --
