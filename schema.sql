@@ -21,7 +21,11 @@ create table if not exists public.html_pages (
   -- Plano free/pro: colunas abaixo controlam expiração e identidade anônima.
   expires_at   timestamptz,
   anon_id      text,
-  expires_at_before_pro timestamptz
+  expires_at_before_pro timestamptz,
+  -- Ícone da página para favicon/previews, preenchido principalmente via fork.
+  icon_type    text check (icon_type in ('emoji', 'text')),
+  icon_value   text,
+  icon_color   text
 );
 
 -- Colunas adicionadas depois do lançamento inicial — "add column if not
@@ -30,6 +34,9 @@ create table if not exists public.html_pages (
 alter table public.html_pages add column if not exists expires_at timestamptz;
 alter table public.html_pages add column if not exists anon_id text;
 alter table public.html_pages add column if not exists expires_at_before_pro timestamptz;
+alter table public.html_pages add column if not exists icon_type text check (icon_type in ('emoji', 'text'));
+alter table public.html_pages add column if not exists icon_value text;
+alter table public.html_pages add column if not exists icon_color text;
 
 comment on table public.html_pages is 'Arquivos HTML enviados pelos usuários (upload).';
 comment on column public.html_pages.file_path is 'Caminho do arquivo no bucket html-files do Supabase Storage.';

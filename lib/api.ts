@@ -144,3 +144,50 @@ export function anonHeaders(init?: HeadersInit): Headers {
   }
   return headers;
 }
+
+import type {
+  Template,
+  TemplateCloneResponse,
+  TemplateCreateRequest,
+  TemplateFilters,
+  TemplateListResponse,
+  TemplateUpdateRequest,
+} from "@/lib/types";
+
+export async function getTemplates(filters: TemplateFilters = {}): Promise<TemplateListResponse> {
+  const params = new URLSearchParams();
+  if (filters.category) params.set("category", filters.category);
+  if (filters.tag) params.set("tag", filters.tag);
+  if (filters.search) params.set("search", filters.search);
+  if (filters.is_official !== undefined) params.set("is_official", String(filters.is_official));
+  const query = params.toString();
+  return apiFetch<TemplateListResponse>(`/templates${query ? `?${query}` : ""}`);
+}
+
+export async function getTemplate(id: string): Promise<Template> {
+  return apiFetch<Template>(`/templates/${id}`);
+}
+
+export async function publishTemplate(payload: TemplateCreateRequest): Promise<Template> {
+  return apiFetch<Template>("/templates", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function updateTemplate(id: string, payload: TemplateUpdateRequest): Promise<Template> {
+  return apiFetch<Template>(`/templates/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function deleteTemplate(id: string): Promise<void> {
+  return apiFetch<void>(`/templates/${id}`, { method: "DELETE" });
+}
+
+export async function cloneTemplate(id: string): Promise<TemplateCloneResponse> {
+  return apiFetch<TemplateCloneResponse>(`/templates/${id}/clone`, { method: "POST" });
+}

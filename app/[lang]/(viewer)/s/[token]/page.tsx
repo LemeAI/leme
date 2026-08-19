@@ -130,6 +130,7 @@ export default async function SharedPage({
               pageTitle={page.title}
               pageHtml={pageHtml}
               initialContributions={contributions}
+              allowForks={page.allow_forks}
               dict={dict}
             />
           ) : null

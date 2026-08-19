@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { usePageMemory } from "@/lib/hooks/usePageMemory";
+import { useMemoryHighlightState } from "@/lib/hooks/useMemoryHighlightState";
 import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
 interface PageMemoryPanelProps {
@@ -31,6 +32,28 @@ function downloadCsv(filename: string, rows: string[][]) {
 export default function PageMemoryPanel({ pageId, dict }: PageMemoryPanelProps) {
   const { memory, loading, error } = usePageMemory(pageId);
   const [filter, setFilter] = useState("");
+  const { baseMemory, freshUntilByKey, now } = useMemoryHighlightState(memory, loading);
+
+  const changedKeys = useMemo(() => {
+    const set = new Set<string>();
+    for (const key of Object.keys(memory)) {
+      if (!(key in baseMemory) || baseMemory[key] !== memory[key]) {
+        set.add(key);
+      }
+    }
+    return set;
+  }, [memory, baseMemory]);
+
+  const freshKeys = useMemo(() => {
+    const set = new Set<string>();
+    for (const [key, until] of Object.entries(freshUntilByKey)) {
+      if (until > now) set.add(key);
+    }
+    return set;
+  }, [freshUntilByKey, now]);
+
+  const hasChanges = changedKeys.size > 0;
+  const hasFreshChanges = freshKeys.size > 0;
 
   const entries = useMemo(() => {
     const normalized = filter.trim().toLowerCase();
@@ -40,8 +63,13 @@ export default function PageMemoryPanel({ pageId, dict }: PageMemoryPanelProps) 
           key.toLowerCase().includes(normalized) ||
           String(value).toLowerCase().includes(normalized)
       )
-      .sort(([a], [b]) => a.localeCompare(b));
-  }, [memory, filter]);
+      .sort(([a], [b]) => {
+        const aFresh = freshKeys.has(a) ? 2 : changedKeys.has(a) ? 1 : 0;
+        const bFresh = freshKeys.has(b) ? 2 : changedKeys.has(b) ? 1 : 0;
+        if (aFresh !== bFresh) return bFresh - aFresh;
+        return a.localeCompare(b);
+      });
+  }, [memory, filter, freshKeys, changedKeys]);
 
   function handleExport() {
     const rows = [
@@ -68,9 +96,17 @@ export default function PageMemoryPanel({ pageId, dict }: PageMemoryPanelProps) 
   }
 
   return (
-    <div className="rounded-lg border border-line-soft p-4">
+    <div className={hasFreshChanges ? "rounded-lg border border-line-soft p-4 animate-alert-glow" : "rounded-lg border border-line-soft p-4"}>
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-medium text-white">{dict.pageMemory.title}</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-medium text-white">{dict.pageMemory.title}</h3>
+          {hasFreshChanges && (
+            <span
+              className="inline-block h-2 w-2 rounded-full bg-brand-500 animate-memory-dot-pulse"
+              aria-hidden="true"
+            />
+          )}
+        </div>
         <button
           type="button"
           onClick={handleExport}
@@ -92,12 +128,31 @@ export default function PageMemoryPanel({ pageId, dict }: PageMemoryPanelProps) 
         <p className="text-sm text-mute">{dict.pageMemory.empty}</p>
       ) : (
         <ul className="max-h-48 space-y-2 overflow-y-auto text-sm">
-          {entries.map(([key, value]) => (
-            <li key={key} className="rounded bg-white/5 px-2 py-1.5">
-              <span className="block truncate font-medium text-mute-dim">{key}</span>
-              <span className="block truncate text-white">{value || <em className="text-mute">—</em>}</span>
-            </li>
-          ))}
+          {entries.map(([key, value]) => {
+            const isFresh = freshKeys.has(key);
+            const isChanged = changedKeys.has(key);
+            const itemClass =
+              isFresh
+                ? "rounded border-l-2 border-brand-500 bg-brand-500/15 px-2 py-1.5 animate-memory-pulse"
+                : isChanged
+                  ? "rounded border-l-2 border-brand-500/60 bg-brand-500/8 px-2 py-1.5"
+                  : "rounded bg-white/5 px-2 py-1.5";
+
+            return (
+              <li key={key} className={itemClass}>
+                <div className="flex items-center gap-2">
+                  <span className="block truncate font-medium text-mute-dim">{key}</span>
+                  {isFresh && (
+                    <span
+                      className="inline-block h-1.5 w-1.5 flex-none rounded-full bg-brand-500 animate-memory-dot-pulse"
+                      aria-hidden="true"
+                    />
+                  )}
+                </div>
+                <span className="block truncate text-white">{value || <em className="text-mute">—</em>}</span>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

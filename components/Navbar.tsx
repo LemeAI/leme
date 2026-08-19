@@ -32,6 +32,12 @@ export default function Navbar({ dict, locale }: { dict: Dictionary; locale: Loc
           >
             {dict.nav.blog}
           </Link>
+          <Link
+            href={`/${locale}/templates`}
+            className="link-nav hidden rounded-md px-2 py-1.5 sm:inline"
+          >
+            {dict.nav.templates}
+          </Link>
           <LanguageSwitch currentLocale={locale} />
           {loading ? null : user ? (
             <>

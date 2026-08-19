@@ -3,6 +3,14 @@
 
 export type ContributionType = "comment" | "suggestion" | "fork";
 
+export type ForkIconType = "emoji" | "text";
+
+export interface ForkIconChoice {
+  type: ForkIconType;
+  value: string;
+  color?: string;
+}
+
 export type HtmlPage = {
   id: string;
   user_id: string | null;
@@ -16,6 +24,10 @@ export type HtmlPage = {
   expires_at_before_pro: string | null;
   allow_contributions: boolean;
   hide_branding: boolean;
+  allow_forks: boolean;
+  icon_type: ForkIconType | null;
+  icon_value: string | null;
+  icon_color: string | null;
 };
 
 export type BillingInterval = "month" | "year";
@@ -74,6 +86,9 @@ export type Contribution = {
   type: ContributionType;
   fork_page_id: string | null;
   created_at: string;
+  icon_type?: ForkIconType | null;
+  icon_value?: string | null;
+  icon_color?: string | null;
 };
 
 // -- Tipos das respostas da API do backend (FastAPI/Pydantic, snake_case) --
@@ -99,6 +114,7 @@ export interface PageByTokenResponse {
     | "created_at"
     | "allow_contributions"
     | "hide_branding"
+    | "allow_forks"
   >;
   share_link: Pick<ShareLink, "id" | "token" | "expires_at">;
 }
@@ -116,4 +132,67 @@ export interface PageMemoryRead {
 export interface PageMemoryUpdateRequest {
   author_name?: string;
   updates: Record<string, string | null>;
+}
+
+export type TemplateCategory = "pm_po" | "service_provider" | "forms" | "other";
+
+export interface Template {
+  id: string;
+  source_page_id: string | null;
+  owner_user_id: string;
+  title: string;
+  description: string | null;
+  category: TemplateCategory;
+  tags: string[];
+  file_path: string;
+  icon_type: ForkIconType | null;
+  icon_value: string | null;
+  icon_color: string | null;
+  is_official: boolean;
+  is_published: boolean;
+  clones_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TemplateListResponse {
+  items: Template[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface TemplateCreateRequest {
+  source_page_id: string;
+  title: string;
+  description?: string;
+  category: TemplateCategory;
+  tags?: string[];
+  icon_type?: ForkIconType;
+  icon_value?: string;
+  icon_color?: string;
+  is_official?: boolean;
+}
+
+export interface TemplateUpdateRequest {
+  title?: string;
+  description?: string;
+  category?: TemplateCategory;
+  tags?: string[];
+  icon_type?: ForkIconType;
+  icon_value?: string;
+  icon_color?: string;
+  is_published?: boolean;
+}
+
+export interface TemplateCloneResponse {
+  page: HtmlPage;
+}
+
+export interface TemplateFilters {
+  category?: TemplateCategory;
+  tag?: string;
+  search?: string;
+  is_official?: boolean;
+  offset?: number;
 }

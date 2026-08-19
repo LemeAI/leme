@@ -7,6 +7,7 @@ import UploadsMenu from "@/components/UploadsMenu";
 import PlanUpsellCard from "@/components/PlanUpsellCard";
 import PageMemoryPanel from "@/components/PageMemoryPanel";
 import PageSettingsPanel from "@/components/PageSettingsPanel";
+import PublishTemplatePanel from "@/components/PublishTemplatePanel";
 import { useAuth } from "@/lib/auth";
 import { useMyPages } from "@/lib/hooks/useMyPages";
 import { useProfile } from "@/lib/hooks/useProfile";
@@ -66,9 +67,37 @@ export default function PageSidebar({
             pageId={currentPageId}
             allowContributions={currentPage.allow_contributions}
             hideBranding={currentPage.hide_branding}
+            allowForks={currentPage.allow_forks}
             dict={dict}
             onChange={() => refresh()}
           />
+        )}
+
+        {canConfigure && currentPage && (
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2 px-1">
+              <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-mute-dim">
+                {dict.templates?.publishPanel?.title ?? "Template"}
+              </p>
+              <span className="rounded-full bg-brand-500/15 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.1em] text-brand-500">
+                {dict.pageSettings.proOnly}
+              </span>
+            </div>
+            <div className="panel p-4">
+              <PublishTemplatePanel
+                pageId={currentPageId}
+                pageTitle={currentPage.title}
+                pageDescription={currentPage.description}
+                icon={{
+                  type: currentPage.icon_type ?? "emoji",
+                  value: currentPage.icon_value ?? "🚀",
+                  color: currentPage.icon_color ?? "#ff6a00",
+                }}
+                dict={dict}
+                onPublished={() => refresh()}
+              />
+            </div>
+          </div>
         )}
 
         {ownsPage && <PageMemoryPanel pageId={currentPageId} dict={dict} />}

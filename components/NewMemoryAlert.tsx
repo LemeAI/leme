@@ -30,9 +30,10 @@ export default function NewMemoryAlert({ pageId, dict }: NewMemoryAlertProps) {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-lg border border-line-soft bg-black px-4 py-3 shadow-lg sm:bottom-6">
-      <p className="text-sm text-white">{dict.newMemoryAlert.message}</p>
-      <div className="mt-2 flex gap-3">
+    <div className="fixed bottom-4 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md animate-slide-up-fade sm:bottom-6">
+      <div className="rounded-lg border border-line-soft bg-black px-4 py-3 shadow-lg animate-alert-glow">
+        <p className="text-sm text-white">{dict.newMemoryAlert.message}</p>
+        <div className="mt-2 flex gap-3">
         <button
           type="button"
           onClick={handleReload}
@@ -47,6 +48,7 @@ export default function NewMemoryAlert({ pageId, dict }: NewMemoryAlertProps) {
         >
           {dict.newMemoryAlert.dismiss}
         </button>
+        </div>
       </div>
     </div>
   );
