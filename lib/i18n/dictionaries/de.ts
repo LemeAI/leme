@@ -973,6 +973,8 @@ export const de: Dictionary = {
     error: "Verbindungsfehler beim Senden des Beitrags.",
     forkOf: "Fork von {title}",
     forkDisabledHint: "Forks sind für diese Seite deaktiviert.",
+    forkProOnlyHint: "Forks sind eine Pro-Funktion. Der Seiteninhaber kann sie in den Einstellungen aktivieren.",
+    proBadge: "Pro",
   },
   forkEditor: {
     title: "Fork von {title}",

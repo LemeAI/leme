@@ -154,12 +154,17 @@ export default function ContributionsPanel({
                 type="button"
                 disabled={disabled}
                 onClick={() => setType(t)}
-                className={`rounded-full px-3 py-1 font-medium transition-colors ${
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-medium transition-colors ${
                   type === t ? "bg-white text-black" : "bg-white/5 text-mute hover:text-white"
-                } ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
-                title={disabled ? (d.forkDisabledHint as string | undefined) : undefined}
+                } ${disabled ? "cursor-not-allowed bg-black/30 text-mute opacity-60" : ""}`}
+                title={disabled ? (d.forkProOnlyHint as string | undefined) : undefined}
               >
                 {typeLabel(TYPE_KEYS[t])}
+                {disabled && (
+                  <span className="rounded-full border border-brand-500/30 bg-brand-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-brand-500">
+                    {d.proBadge}
+                  </span>
+                )}
               </button>
             );
           })}

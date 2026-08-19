@@ -970,6 +970,8 @@ export const en = {
     error: "Connection error while submitting contribution.",
     forkOf: "Fork of {title}",
     forkDisabledHint: "Forks are disabled for this page.",
+    forkProOnlyHint: "Forks are a Pro feature. The page owner can enable them in settings.",
+    proBadge: "Pro",
   },
   forkEditor: {
     title: "Fork of {title}",

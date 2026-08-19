@@ -972,6 +972,8 @@ export const es: Dictionary = {
     error: "Error de conexión al enviar la contribución.",
     forkOf: "Fork de {title}",
     forkDisabledHint: "Los forks están deshabilitados para esta página.",
+    forkProOnlyHint: "Los forks son una funcionalidad Pro. El dueño de la página puede habilitarlos en los ajustes.",
+    proBadge: "Pro",
   },
   forkEditor: {
     title: "Fork de {title}",

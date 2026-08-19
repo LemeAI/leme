@@ -53,9 +53,13 @@ export default function ForkEditorModal({
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const previewRef = useRef<HTMLIFrameElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleEditorChange = useCallback((value: string) => {
-    setPreviewHtml(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setPreviewHtml(value);
+    }, 300);
   }, []);
 
   const { containerRef, value: html, selectText } = useCodeMirror({
@@ -105,7 +109,7 @@ export default function ForkEditorModal({
   );
 
   const previewWithSelector = useMemo(() => {
-    if (!previewHtml) return previewHtml;
+    if (!initialHtml) return initialHtml;
     const script = `
 <script>
 (function () {
@@ -138,6 +142,14 @@ export default function ForkEditorModal({
     var prev = document.querySelector('.leme-selected');
     if (prev) prev.classList.remove('leme-selected');
   }
+  function injectSelectionStyle() {
+    if (document.getElementById('leme-selected-style')) return;
+    var style = document.createElement('style');
+    style.id = 'leme-selected-style';
+    style.textContent = '.leme-selected { outline: 3px solid #ff6a00 !important; outline-offset: 2px !important; box-shadow: 0 0 0 4px rgba(255, 106, 0, 0.18) !important; }';
+    (document.head || document.documentElement).appendChild(style);
+  }
+  injectSelectionStyle();
   document.addEventListener('click', function (e) {
     var el = e.target;
     if (!el || el === document.body || el === document.documentElement) return;
@@ -161,11 +173,27 @@ export default function ForkEditorModal({
       text: (el.textContent || '').slice(0, 200)
     }, '*');
   }, true);
+  window.addEventListener('message', function (e) {
+    if (!e.data || e.data.type !== 'leme-update-html') return;
+    var html = e.data.html;
+    if (typeof html !== 'string') return;
+    var scrollX = window.scrollX || window.pageXOffset;
+    var scrollY = window.scrollY || window.pageYOffset;
+    var selected = document.querySelector('.leme-selected');
+    var selectedSelector = selected ? selectorFor(selected) : null;
+    document.body.innerHTML = html;
+    injectSelectionStyle();
+    if (selectedSelector) {
+      var el = document.querySelector(selectedSelector);
+      if (el) el.classList.add('leme-selected');
+    }
+    window.scrollTo(scrollX, scrollY);
+  });
 })();
 </script>
     `.trim();
     const style = `
-<style>
+<style id="leme-selected-style">
   .leme-selected {
     outline: 3px solid #ff6a00 !important;
     outline-offset: 2px !important;
@@ -173,25 +201,47 @@ export default function ForkEditorModal({
   }
 </style>
     `.trim();
-    const injection = style + "\\n" + script;
-    if (previewHtml.toLowerCase().includes("</body>")) {
-      return previewHtml.replace(/<\/body>/i, injection + "</body>");
+    let result = initialHtml;
+    if (result.toLowerCase().includes("</head>")) {
+      result = result.replace(/<\/head>/i, style + "\\n</head>");
+    } else if (result.toLowerCase().includes("<body")) {
+      result = result.replace(/<body[^>]*>/i, function (match) { return match + style; });
+    } else {
+      result = style + result;
     }
-    return previewHtml + injection;
-  }, [previewHtml]);
+    if (result.toLowerCase().includes("</body>")) {
+      result = result.replace(/<\/body>/i, script + "\\n</body>");
+    } else {
+      result = result + script;
+    }
+    return result;
+  }, [initialHtml]);
 
   // Escuta cliques de elementos no preview do iframe.
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
       if (event.data?.type !== "leme-element-selected") return;
-      const { outerHTML } = event.data as { outerHTML?: string };
-      if (!outerHTML || !selectText) return;
+      const { outerHTML, text } = event.data as { outerHTML?: string; text?: string };
+      if (!selectText) return;
 
-      selectText(outerHTML);
+      if (outerHTML && selectText(outerHTML)) return;
+
+      const trimmed = text?.trim();
+      if (trimmed && trimmed.length > 1 && selectText(trimmed)) return;
     }
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, [selectText]);
+
+  // Envia atualizações de HTML para o iframe via postMessage, evitando recarregar o preview.
+  useEffect(() => {
+    const iframe = previewRef.current;
+    if (!iframe?.contentWindow) return;
+    iframe.contentWindow.postMessage(
+      { type: "leme-update-html", html: previewHtml },
+      "*"
+    );
+  }, [previewHtml]);
 
   if (!isOpen) return null;
 

@@ -975,6 +975,8 @@ export const fr: Dictionary = {
     error: "Erreur de connexion lors de l'envoi de la contribution.",
     forkOf: "Fork de {title}",
     forkDisabledHint: "Les forks sont désactivés pour cette page.",
+    forkProOnlyHint: "Les forks sont une fonctionnalité Pro. Le propriétaire de la page peut les activer dans les réglages.",
+    proBadge: "Pro",
   },
   forkEditor: {
     title: "Fork de {title}",

@@ -968,6 +968,8 @@ export const ja: Dictionary = {
     error: "投稿の送信中に接続エラーが発生しました。",
     forkOf: "{title} のフォーク",
     forkDisabledHint: "このページではフォークが無効になっています。",
+    forkProOnlyHint: "フォークはPro機能です。ページの所有者が設定で有効にできます。",
+    proBadge: "Pro",
   },
   forkEditor: {
     title: "{title} のフォーク",
