@@ -1,22 +1,31 @@
 "use client";
 
 import { useState } from "react";
+import ConfirmDialog from "@/components/ConfirmDialog";
 import { ApiError, apiFetch } from "@/lib/api";
 
 export default function CancelSubscriptionButton({
+  label,
+  loadingLabel,
+  confirmMessage,
+  confirmTitle,
+  cancelLabel,
+  errorMessage,
   onCancelled,
 }: {
+  label: string;
+  loadingLabel: string;
+  confirmMessage: string;
+  confirmTitle: string;
+  cancelLabel: string;
+  errorMessage: string;
   onCancelled?: () => void;
 }) {
+  const [confirming, setConfirming] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleCancel() {
-    const confirmed = window.confirm(
-      "Are you sure you want to cancel your Pro plan? You will keep access until the end of the current billing period.",
-    );
-    if (!confirmed) return;
-
     setLoading(true);
     setError(null);
 
@@ -24,9 +33,11 @@ export default function CancelSubscriptionButton({
       await apiFetch<{ cancel_at_period_end: boolean }>("/billing/cancel", {
         method: "POST",
       });
+      setConfirming(false);
       onCancelled?.();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Failed to cancel subscription.");
+      setError(err instanceof ApiError ? err.message : errorMessage);
+      setConfirming(false);
       setLoading(false);
     }
   }
@@ -35,13 +46,25 @@ export default function CancelSubscriptionButton({
     <div className="flex flex-col gap-2">
       <button
         type="button"
-        onClick={handleCancel}
+        onClick={() => setConfirming(true)}
         disabled={loading}
-        className="w-full rounded-full border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 shadow-sm transition-colors hover:bg-red-50 disabled:opacity-50 sm:w-fit"
+        className="btn btn-danger w-full justify-center py-2 text-xs disabled:opacity-50 sm:w-fit"
       >
-        {loading ? "Cancelling..." : "Cancel Pro plan"}
+        {loading ? loadingLabel : label}
       </button>
-      {error && <span className="text-xs text-red-600">{error}</span>}
+      {error && <span className="text-xs text-red-400">{error}</span>}
+
+      <ConfirmDialog
+        open={confirming}
+        title={confirmTitle}
+        description={confirmMessage}
+        confirmLabel={label}
+        cancelLabel={cancelLabel}
+        destructive
+        busy={loading}
+        onConfirm={handleCancel}
+        onCancel={() => setConfirming(false)}
+      />
     </div>
   );
 }

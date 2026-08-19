@@ -3,19 +3,22 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { ApiError, anonHeaders, apiFetch } from "@/lib/api";
+import { useLocale } from "@/lib/i18n/use-locale";
+import { formatTemplate } from "@/lib/i18n/format-template";
 import type { Contribution, ContributionType } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
-const TYPE_LABELS: Record<ContributionType, string> = {
-  comment: "Comment",
-  suggestion: "Suggestion",
-  fork: "Fork",
+const TYPE_KEYS: Record<ContributionType, keyof Dictionary["contributions"]> = {
+  comment: "typeComment",
+  suggestion: "typeSuggestion",
+  fork: "typeFork",
 };
 
 const TYPE_COLORS: Record<ContributionType, string> = {
-  comment: "bg-ink-100 text-ink-600",
-  suggestion: "bg-amber-100 text-amber-700",
-  fork: "bg-brand-100 text-brand-700",
+  comment: "bg-white/10 text-mute",
+  suggestion: "bg-amber-500/10 text-amber-400",
+  fork: "bg-brand-500/15 text-brand-500",
 };
 
 export default function ContributionsPanel({
@@ -23,20 +26,28 @@ export default function ContributionsPanel({
   pageTitle,
   pageHtml,
   initialContributions,
+  dict,
 }: {
   pageId: string;
   pageTitle: string;
   pageHtml: string;
   initialContributions: Contribution[];
+  dict: Dictionary;
 }) {
   const [contributions, setContributions] = useState(initialContributions);
+  const locale = useLocale();
+  const d = dict.contributions;
   const [type, setType] = useState<ContributionType>("comment");
   const [authorName, setAuthorName] = useState("");
   const [content, setContent] = useState("");
-  const [forkTitle, setForkTitle] = useState(`Fork of ${pageTitle}`);
+  const [forkTitle, setForkTitle] = useState(
+    formatTemplate(dict.contributions.forkOf, { title: pageTitle }),
+  );
   const [forkHtml, setForkHtml] = useState(pageHtml);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const typeLabel = (key: keyof Dictionary["contributions"]) => d[key] as string;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -65,7 +76,7 @@ export default function ContributionsPanel({
       setContributions((prev) => [contribution, ...prev]);
       setContent("");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Connection error while submitting contribution.");
+      setError(err instanceof ApiError ? err.message : d.error);
     } finally {
       setLoading(false);
     }
@@ -75,19 +86,19 @@ export default function ContributionsPanel({
     <div className="flex flex-col gap-6">
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col gap-3 rounded-2xl border border-ink-100 bg-white p-5 shadow-card"
+        className="panel flex flex-col gap-4 p-5"
       >
         <div className="flex gap-2 text-xs">
-          {(Object.keys(TYPE_LABELS) as ContributionType[]).map((t) => (
+          {(Object.keys(TYPE_KEYS) as ContributionType[]).map((t) => (
             <button
               key={t}
               type="button"
               onClick={() => setType(t)}
               className={`rounded-full px-3 py-1 font-medium transition-colors ${
-                type === t ? "bg-brand-500 text-white shadow-sm" : "bg-ink-100 text-ink-500"
+                type === t ? "bg-white text-black" : "bg-white/5 text-mute hover:text-white"
               }`}
             >
-              {TYPE_LABELS[t]}
+              {typeLabel(TYPE_KEYS[t])}
             </button>
           ))}
         </div>
@@ -96,8 +107,8 @@ export default function ContributionsPanel({
           type="text"
           value={authorName}
           onChange={(e) => setAuthorName(e.target.value)}
-          placeholder="Your name (optional)"
-          className="rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+          placeholder={d.authorPlaceholder}
+          className="field-input mt-0"
         />
 
         {type === "fork" && (
@@ -106,16 +117,16 @@ export default function ContributionsPanel({
               type="text"
               value={forkTitle}
               onChange={(e) => setForkTitle(e.target.value)}
-              placeholder="Fork title"
-              className="rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+              placeholder={d.forkTitlePlaceholder}
+              className="field-input mt-0"
             />
-            <label className="flex flex-col gap-1 text-xs font-medium text-ink-500">
-              Edit the HTML before creating the fork:
+            <label className="flex flex-col gap-1 text-xs font-medium text-mute">
+              {d.forkHtmlLabel}
               <textarea
                 value={forkHtml}
                 onChange={(e) => setForkHtml(e.target.value)}
                 rows={8}
-                className="mt-1 rounded-xl border border-ink-200 bg-ink-50 px-3 py-2 font-mono text-xs text-ink-800 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+                className="field-input font-mono text-xs"
               />
             </label>
           </>
@@ -126,54 +137,54 @@ export default function ContributionsPanel({
           onChange={(e) => setContent(e.target.value)}
           placeholder={
             type === "comment"
-              ? "Leave a comment..."
+              ? d.commentPlaceholder
               : type === "suggestion"
-              ? "Describe your suggestion..."
-              : "Message about this fork (optional)"
+              ? d.suggestionPlaceholder
+              : d.forkMessagePlaceholder
           }
           rows={3}
           required={type !== "fork"}
-          className="rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+          className="field-input mt-0"
         />
 
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="alert alert-error">{error}</p>}
 
         <button
           type="submit"
           disabled={loading}
-          className="w-fit rounded-full bg-brand-500 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 disabled:opacity-50"
+          className="btn btn-primary w-fit disabled:opacity-50"
         >
           {loading
-            ? "Submitting..."
+            ? d.submitting
             : type === "fork"
-            ? "Create fork"
-            : "Submit"}
+            ? d.createFork
+            : d.submit}
         </button>
       </form>
 
       <ul className="flex flex-col gap-3">
         {contributions.length === 0 && (
-          <p className="text-sm text-ink-400">No contributions yet. Be the first!</p>
+          <p className="text-sm text-mute-dim">{d.emptyState}</p>
         )}
         {contributions.map((c) => (
           <li
             key={c.id}
-            className="rounded-2xl border border-ink-100 bg-white p-4 text-sm shadow-card"
+            className="panel p-4 text-sm"
           >
             <div className="mb-1 flex items-center gap-2">
               <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_COLORS[c.type]}`}>
-                {TYPE_LABELS[c.type]}
+                {typeLabel(TYPE_KEYS[c.type])}
               </span>
-              <span className="font-semibold text-ink-800">{c.author_name}</span>
-              <span className="text-xs text-ink-400">{formatDate(c.created_at)}</span>
+              <span className="font-medium">{c.author_name}</span>
+              <span className="text-xs text-mute-dim">{formatDate(c.created_at, locale)}</span>
             </div>
-            <p className="text-ink-600">{c.content}</p>
+            <p className="text-mute">{c.content}</p>
             {c.type === "fork" && c.fork_page_id && (
               <Link
-                href={`/p/${c.fork_page_id}`}
-                className="mt-1 inline-block text-xs font-medium text-brand-600 hover:underline"
+                href={`/${locale}/p/${c.fork_page_id}`}
+                className="mt-2 inline-block text-xs text-brand-500 transition-colors hover:text-brand-400"
               >
-                View fork →
+                {d.viewFork}
               </Link>
             )}
           </li>

@@ -64,19 +64,17 @@ export default function Logo({
   withWordmark?: boolean;
   size?: "sm" | "md";
 }) {
-  const badgeSize = size === "sm" ? "h-6 w-6" : "h-7 w-7";
-  const markSize = size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4";
-  const textSize = size === "sm" ? "text-sm" : "text-base";
+  const markSize = size === "sm" ? "h-6 w-6" : "h-7 w-7";
+  const textSize = size === "sm" ? "text-base" : "text-[17px]";
 
+  // No tema escuro a marca é monocromática: o leme em branco sobre o preto
+  // lê com 21:1, enquanto o badge laranja com ícone branco ficava em 2.87:1.
+  // O laranja fica reservado para ação e sequência no resto da interface.
   return (
-    <span className="flex items-center gap-2">
-      <span
-        className={`flex shrink-0 items-center justify-center rounded-full bg-brand-500 text-white ${badgeSize}`}
-      >
-        <LogoMark className={markSize} />
-      </span>
+    <span className="flex items-center gap-2.5 text-white">
+      <LogoMark className={`shrink-0 ${markSize}`} />
       {withWordmark && (
-        <span className={`font-semibold tracking-tight text-ink-900 ${textSize}`}>Leme</span>
+        <span className={`font-medium tracking-[-0.02em] ${textSize}`}>Leme</span>
       )}
     </span>
   );

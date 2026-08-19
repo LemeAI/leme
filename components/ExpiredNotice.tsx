@@ -1,18 +1,16 @@
 import Link from "next/link";
+import type { Locale } from "@/lib/i18n/config";
+import type { Dictionary } from "@/lib/i18n/dictionaries/en";
 
-export default function ExpiredNotice() {
+export default function ExpiredNotice({ locale, dict }: { locale: Locale; dict: Dictionary }) {
+  const e = dict.expiredNotice;
+
   return (
-    <div className="flex min-h-[70vh] w-full flex-col items-center justify-center gap-3 bg-white px-4 text-center">
-      <h1 className="text-xl font-bold tracking-tight text-ink-900">This page has expired</h1>
-      <p className="max-w-sm text-sm text-ink-500">
-        The author&apos;s plan limits how long a page stays live. If you&apos;re the
-        author, upgrade to the Pro plan to keep your pages from expiring.
-      </p>
-      <Link
-        href="/"
-        className="mt-2 rounded-full bg-brand-500 px-5 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600"
-      >
-        Back to home
+    <div className="flex min-h-[70vh] w-full flex-col items-center justify-center gap-5 px-5 text-center">
+      <h1 className="section-head">{e.title}</h1>
+      <p className="max-w-sm text-[15px] leading-relaxed text-mute">{e.description}</p>
+      <Link href={`/${locale}`} className="btn btn-primary mt-2">
+        {e.cta}
       </Link>
     </div>
   );

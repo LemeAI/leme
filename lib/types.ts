@@ -14,6 +14,8 @@ export type HtmlPage = {
   expires_at: string | null;
   anon_id: string | null;
   expires_at_before_pro: string | null;
+  allow_contributions: boolean;
+  hide_branding: boolean;
 };
 
 export type BillingInterval = "month" | "year";
@@ -87,7 +89,17 @@ export interface ShareResponse {
 }
 
 export interface PageByTokenResponse {
-  page: Pick<HtmlPage, "id" | "title" | "description" | "file_path" | "views_count" | "created_at">;
+  page: Pick<
+    HtmlPage,
+    | "id"
+    | "title"
+    | "description"
+    | "file_path"
+    | "views_count"
+    | "created_at"
+    | "allow_contributions"
+    | "hide_branding"
+  >;
   share_link: Pick<ShareLink, "id" | "token" | "expires_at">;
 }
 
@@ -95,4 +107,13 @@ export interface MeResponse {
   profile: Profile;
   active_pages_count: number;
   max_active_pages: number | null;
+}
+
+export interface PageMemoryRead {
+  memory: Record<string, string | null>;
+}
+
+export interface PageMemoryUpdateRequest {
+  author_name?: string;
+  updates: Record<string, string | null>;
 }

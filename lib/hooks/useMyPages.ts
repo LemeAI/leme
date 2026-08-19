@@ -9,6 +9,7 @@ interface UseMyPagesResult {
   pages: HtmlPage[];
   loading: boolean;
   error: Error | undefined;
+  refresh: () => void;
 }
 
 /**
@@ -29,7 +30,7 @@ export function useMyPages(): UseMyPagesResult {
       ? (["/pages/mine", "user"] as const)
       : (["/pages/mine/anonymous", "anon"] as const);
 
-  const { data, error, isLoading } = useSWR<HtmlPage[]>(
+  const { data, error, isLoading, mutate } = useSWR<HtmlPage[]>(
     key,
     async ([path, kind]) => {
       const headers = kind === "anon" ? anonHeaders() : undefined;
@@ -46,5 +47,8 @@ export function useMyPages(): UseMyPagesResult {
     pages: data ?? [],
     loading: authLoading || isLoading,
     error,
+    refresh: () => {
+      void mutate();
+    },
   };
 }
