@@ -24,6 +24,7 @@ export type HtmlPage = {
   expires_at_before_pro: string | null;
   allow_contributions: boolean;
   hide_branding: boolean;
+  allow_forks: boolean;
   icon_type: ForkIconType | null;
   icon_value: string | null;
   icon_color: string | null;
@@ -113,6 +114,7 @@ export interface PageByTokenResponse {
     | "created_at"
     | "allow_contributions"
     | "hide_branding"
+    | "allow_forks"
   >;
   share_link: Pick<ShareLink, "id" | "token" | "expires_at">;
 }

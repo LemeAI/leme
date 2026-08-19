@@ -66,6 +66,7 @@ export default function PageSidebar({
             pageId={currentPageId}
             allowContributions={currentPage.allow_contributions}
             hideBranding={currentPage.hide_branding}
+            allowForks={currentPage.allow_forks}
             dict={dict}
             onChange={() => refresh()}
           />

@@ -26,7 +26,8 @@ const lemeTheme = EditorView.theme(
       borderLeftColor: "#ff6a00",
     },
     "&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection": {
-      backgroundColor: "rgba(255, 106, 0, 0.25)",
+      backgroundColor: "rgba(255, 106, 0, 0.45)",
+      color: "#ffffff",
     },
     ".cm-gutters": {
       backgroundColor: "#101012",
@@ -116,5 +117,21 @@ export function useCodeMirror({ initialValue = "", onChange }: UseCodeMirrorOpti
     setValue(newValue);
   };
 
-  return { containerRef, value, setValue: setEditorValue };
+  const selectText = (search: string) => {
+    const view = viewRef.current;
+    if (!view) return false;
+    const doc = view.state.doc;
+    const text = doc.toString();
+    const index = text.indexOf(search);
+    if (index === -1) return false;
+
+    view.dispatch({
+      selection: { anchor: index, head: index + search.length },
+      effects: EditorView.scrollIntoView(index, { y: "center" }),
+    });
+    view.focus();
+    return true;
+  };
+
+  return { containerRef, value, setValue: setEditorValue, selectText };
 }

@@ -27,12 +27,14 @@ export default function ContributionsPanel({
   pageTitle,
   pageHtml,
   initialContributions,
+  allowForks,
   dict,
 }: {
   pageId: string;
   pageTitle: string;
   pageHtml: string;
   initialContributions: Contribution[];
+  allowForks: boolean;
   dict: Dictionary;
 }) {
   const [contributions, setContributions] = useState(initialContributions);
@@ -61,6 +63,7 @@ export default function ContributionsPanel({
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (type === "fork") {
+      if (!allowForks) return;
       openEditor();
       return;
     }
@@ -143,18 +146,23 @@ export default function ContributionsPanel({
         className="panel flex flex-col gap-4 p-5"
       >
         <div className="flex gap-2 text-xs">
-          {(Object.keys(TYPE_KEYS) as ContributionType[]).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setType(t)}
-              className={`rounded-full px-3 py-1 font-medium transition-colors ${
-                type === t ? "bg-white text-black" : "bg-white/5 text-mute hover:text-white"
-              }`}
-            >
-              {typeLabel(TYPE_KEYS[t])}
-            </button>
-          ))}
+          {(Object.keys(TYPE_KEYS) as ContributionType[]).map((t) => {
+            const disabled = t === "fork" && !allowForks;
+            return (
+              <button
+                key={t}
+                type="button"
+                disabled={disabled}
+                onClick={() => setType(t)}
+                className={`rounded-full px-3 py-1 font-medium transition-colors ${
+                  type === t ? "bg-white text-black" : "bg-white/5 text-mute hover:text-white"
+                } ${disabled ? "cursor-not-allowed opacity-50" : ""}`}
+                title={disabled ? (d.forkDisabledHint as string | undefined) : undefined}
+              >
+                {typeLabel(TYPE_KEYS[t])}
+              </button>
+            );
+          })}
         </div>
 
         <input
@@ -164,16 +172,6 @@ export default function ContributionsPanel({
           placeholder={d.authorPlaceholder}
           className="field-input mt-0"
         />
-
-        {type === "fork" && (
-          <button
-            type="button"
-            onClick={openEditor}
-            className="btn btn-brand w-fit"
-          >
-            {de.openEditor}
-          </button>
-        )}
 
         <textarea
           value={content}

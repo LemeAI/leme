@@ -9,25 +9,29 @@ export default function PageSettingsPanel({
   pageId,
   allowContributions,
   hideBranding,
+  allowForks,
   dict,
   onChange,
 }: {
   pageId: string;
   allowContributions: boolean;
   hideBranding: boolean;
+  allowForks: boolean;
   dict: Dictionary;
   onChange?: (page: HtmlPage) => void;
 }) {
   const s = dict.pageSettings;
   const [contributions, setContributions] = useState(allowContributions);
   const [showHeader, setShowHeader] = useState(!hideBranding);
+  const [forks, setForks] = useState(allowForks);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function save(nextContributions: boolean, nextShowHeader: boolean) {
-    const previous = { contributions, showHeader };
+  async function save(nextContributions: boolean, nextShowHeader: boolean, nextForks: boolean) {
+    const previous = { contributions, showHeader, forks };
     setContributions(nextContributions);
     setShowHeader(nextShowHeader);
+    setForks(nextForks);
     setSaving(true);
     setError(null);
 
@@ -38,12 +42,14 @@ export default function PageSettingsPanel({
         body: JSON.stringify({
           allow_contributions: nextContributions,
           hide_branding: !nextShowHeader,
+          allow_forks: nextForks,
         }),
       });
       onChange?.(page);
     } catch (err) {
       setContributions(previous.contributions);
       setShowHeader(previous.showHeader);
+      setForks(previous.forks);
       setError(err instanceof ApiError ? err.message : s.error);
     } finally {
       setSaving(false);
@@ -67,14 +73,21 @@ export default function PageSettingsPanel({
           hint={s.contributionsHint}
           checked={contributions}
           disabled={saving}
-          onChange={(next) => save(next, showHeader)}
+          onChange={(next) => save(next, showHeader, forks)}
+        />
+        <SettingToggle
+          label={s.forks}
+          hint={s.forksHint}
+          checked={forks}
+          disabled={saving}
+          onChange={(next) => save(contributions, showHeader, next)}
         />
         <SettingToggle
           label={s.branding}
           hint={s.brandingHint}
           checked={showHeader}
           disabled={saving}
-          onChange={(next) => save(contributions, next)}
+          onChange={(next) => save(contributions, next, forks)}
         />
       </div>
 
